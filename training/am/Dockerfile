@@ -1,0 +1,28 @@
+#
+# Copyright 2019 ForgeRock AS. All Rights Reserved
+#
+# Use of this code requires a commercial software license with ForgeRock AS.
+# or with one of its affiliates. All use shall be exclusively subject
+# to such license between the licensee and ForgeRock AS.
+#
+
+FROM tomcat:8.5-jre8
+
+# Add AM resources
+ADD resources/AM-*.war /usr/local/tomcat/webapps/openam.war
+ADD resources/Amster-*.zip /tmp/amster.zip
+RUN mkdir -p /opt/forgerock/amster && unzip -q /tmp/amster.zip -d /opt/forgerock/amster
+ADD install-am.amster /opt/forgerock/amster/install-am.amster
+ADD am_commands.sh /opt/forgerock/am/am_commands.sh
+RUN chmod a+x /opt/forgerock/am/am_commands.sh
+
+# Install AM
+RUN /bin/bash -c "source /opt/forgerock/am/am_commands.sh && install_am && modify_startup"
+
+# Add IEC resources
+WORKDIR /root/forgerock
+COPY resources/iec-edge-*-am-plugin.tar .
+ADD resources/iec-edge-*-edge-identity-manager.war .
+
+# Set bash as the default command in the new container
+CMD ["bash"]
