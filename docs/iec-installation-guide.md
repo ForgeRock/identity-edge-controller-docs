@@ -100,7 +100,7 @@ The IEC is now installed and running as a daemon. If the target system is a Dock
 
     /opt/forgerock/iec/bin/iecservice &
 
-The IEC will repeatedly attempt to register itself with AM. A registered IEC will appear (username: unique identifier) as an identity in the defined "edge" realm in the AM instance. This can be confirmed via the AM admin console or the Edge Identity Manager.
+The IEC will repeatedly attempt to register itself with AM. A registered IEC will appear as an identity in the defined `edge` realm in the AM instance. This can be confirmed via the AM admin console or the Edge Identity Manager.
 
 In production, once the IEC Service has been successfully installed the configuration file should be deleted.
 
