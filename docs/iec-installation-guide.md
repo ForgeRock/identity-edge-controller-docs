@@ -49,7 +49,7 @@ The first step is to reconfigure the Identity Store to store the identities in t
   * Authentication Naming Attribute: change to `ou`
   * Click `Save Changes`
 
-The next step is to create an OAuth2 Provider. Go to Dashboard > Configure OAuth Provider > Configure OpenID Connect and click create.
+The next step is to create an OAuth2 Provider. Go to `Dashboard > Configure OAuth Provider > Configure OpenID Connect` and click `Create`.
 
 Edge node identity profiles can be created dynamically. Alternatively profiles must be created manually before they are registered. The default setup uses dynamic profile creation. To enable this go to Authentication > Settings > User Profile and set User Profile to `Dynamic`.
 
