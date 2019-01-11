@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+
+  am:
+    image: am:latest
+    container_name: am
+    stdin_open: true
+    tty: true
+    build: am
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "50389:50389"
+    domainname: am.iec.com
+    networks:
+      iec_net:
+        ipv4_address: 172.16.0.10
+
+  iec:
+    image: iec:latest
+    container_name: iec
+    stdin_open: true
+    tty: true
+    build: ./iec
+    ports:
+      - "5556:5556"
+    networks:
+      iec_net:
+        ipv4_address: 172.16.0.11
+
+  sdk:
+    image: sdk:latest
+    container_name: sdk
+    stdin_open: true
+    tty: true
+    build: ./sdk
+    networks:
+      iec_net:
+        ipv4_address: 172.16.0.12
+
+networks:
+  iec_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/24
