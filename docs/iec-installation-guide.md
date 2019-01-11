@@ -31,7 +31,7 @@ Modify DS with the the IoT object class and add new attributes:
 
 ### AM Configuration for IoT Realm
 
-The IEC communicates with AM via an IoT enabled realm. Open the AM admin console and create a new realm called 'edge'. Unless otherwise instructed, always use the default values provided. When configuring a production environment, consult the AM documentation on the best values for your use case.
+The IEC communicates with AM via an IoT enabled realm. Open the AM admin console and create a new realm called `edge`. Unless otherwise instructed, always use the default values provided. When configuring a production environment, consult the AM documentation on the best values for your use case.
 
 The first step is to reconfigured the Identity Store to store the identities in the Application Store (AgentService), alongside OAuth2 clients. In the 'edge' realm go to Identity Stores > embedded and change the following:
 
