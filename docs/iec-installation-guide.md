@@ -8,7 +8,7 @@ Install AM 6.5 as described in the [Quick Start Guide](https://backstage.forgero
 
 Copy the AM plugin to the AM web server. For example when using Tomcat with its home directory stored in the variable TOMCAT_HOME and AM installed to `${TOMCAT_HOME}/webapps/openam`, then:
 
-    tar -xzf iec-edge-*-am-plugin.tar
+    tar -xzf iec-am-plugin-*.tgz
     cp am-iec-plugin-*.jar ${TOMCAT_HOME}/webapps/openam/WEB-INF/lib
     cp config/* ${TOMCAT_HOME}/webapps/openam/config/auth/default
 
@@ -66,7 +66,7 @@ The signing key in the above configuration is one of the default test keys avail
 
 Copy the identity manager war file to the same server that is running the AM web server:
 
-    cp iec-edge-*-edge-identity-manager.war ${TOMCAT_HOME}/webapps/identitymanager.war
+    cp edge-identity-manager-*.war ${TOMCAT_HOME}/webapps/identitymanager.war
 
 The identity manager can be accessed via the path `/identitymanager`, for example [http://am.iec.com:8080/identitymanager](http://am.iec.com:8080/identitymanager).
 In order for the identity manager to have the sufficient privileges to access AM, an AM admin user must be logged into the AM Admin Console in the same browser.
@@ -84,7 +84,7 @@ Firstly, it should be ensured that the device can communicate with the AM instan
 
 Unpack the tarball and open the IEC service configuration file:
 
-    tar -xzf iec-edge-*-service-*.tar
+    tar -xzf iec-service-*.tgz
     vim iec-config.json
 
 Change the following values:
@@ -108,7 +108,7 @@ In production, once the IEC Service has been successfully installed the configur
 
 Unpack the tarball:
 
-    tar -xzf iec-edge-*-sdk-*.tar
+    tar -xzf iec-sdk-*.tgz
 
 Add the lib directory to the PATH e.g.
 
