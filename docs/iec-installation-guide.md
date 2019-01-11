@@ -25,7 +25,9 @@ Prepare DS by configuring it to accept multiple structural object classes:
 
 Modify DS with the the IoT object class and add new attributes:
 
-    ~/openam/opends/bin/ldapmodify --port 50389 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password ~/forgerock/ds/iot-device.ldif
+    ~/openam/opends/bin/ldapmodify --port 50389 --hostname localhost \
+        --bindDN "cn=Directory Manager" --bindPassword password \
+        ~/forgerock/ds/iot-device.ldif
 
 ### AM Configuration for IoT Realm
 
