@@ -74,7 +74,7 @@ In order for the identity manager to have the sufficient privileges to access AM
 Currently, the identity manager has the following restrictions:
 
 * AM's install directory has to be `openam`.
-* The IoT realm has to be called "edge".
+* The IoT realm has to be called `edge`.
 
 ### IEC Service
 
