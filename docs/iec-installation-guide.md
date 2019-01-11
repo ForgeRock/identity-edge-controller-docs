@@ -19,7 +19,9 @@ The Tomcat server must be restarted for this change to take effect.
 IoT identities are similar to user identities in AM, but has additional attributes and are stored alongside OAuth2 Clients. 
 Prepare DS by configuring it to accept multiple structural object classes:
 
-    ~/openam/opends/bin/dsconfig set-global-configuration-prop --set single-structural-objectclass-behavior:accept -p 4444 -X -D "cn=Directory Manager" -w "password" -n
+    ~/openam/opends/bin/dsconfig set-global-configuration-prop \
+        --set single-structural-objectclass-behavior:accept \
+        -p 4444 -X -D "cn=Directory Manager" -w "password" -n
 
 Modify DS with the the IoT object class and add new attributes:
 
