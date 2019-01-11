@@ -51,7 +51,7 @@ The first step is to reconfigure the Identity Store to store the identities in t
 
 The next step is to create an OAuth2 Provider. Go to `Dashboard > Configure OAuth Provider > Configure OpenID Connect` and click `Create`.
 
-Edge node identity profiles can be created dynamically. Alternatively profiles must be created manually before they are registered. The default setup uses dynamic profile creation. To enable this go to Authentication > Settings > User Profile and set User Profile to `Dynamic`.
+Edge node identity profiles can be created dynamically. Alternatively profiles must be created manually before they are registered. The default setup uses dynamic profile creation. To enable this go to `Authentication > Settings > User Profile` and set User Profile to `Dynamic`.
 
 Edge node tasks like registration and token retrieval are done with the help of scripts in AM. To install the default registration and command scripts we must add the IEC Service to the realm. Adding the service will also configure the default authentication modules and OAuth2 group. Go to Services, click add a service and choose IEC Service under service type. For example use the following values and click `Create`:
 
