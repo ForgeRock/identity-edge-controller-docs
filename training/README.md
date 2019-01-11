@@ -12,12 +12,12 @@ Download the AM and IEC resources,
 * to `am/resources`
   * [Access Management](https://backstage.forgerock.com/downloads/get/familyId:am/productId:am/minorVersion:6.5/version:6.5.0/releaseType:full/distribution:war)
   * [Amster](https://backstage.forgerock.com/downloads/get/familyId:am/productId:amster/minorVersion:6.5/version:6.5.0/releaseType:full/distribution:zip)
-  * [AM Plugin for the IEC](http://maven.forgerock.org/repo/internal-releases/org/forgerock/iec/iec-edge/1.0.0-RC2/iec-edge-1.0.0-RC2-am-plugin.tar)
-  * [Edge Identity Manager](http://maven.forgerock.org/repo/internal-releases/org/forgerock/iec/iec-edge/1.0.0-RC2/iec-edge-1.0.0-RC2-edge-identity-manager.war)
+  * [AM Plugin for the IEC](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-am-plugin-6.5.0.tgz)
+  * [Edge Identity Manager](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/edge-identity-manager-6.5.0.war)
 * to `iec/resources`
-  * [IEC Service](http://maven.forgerock.org/repo/internal-releases/org/forgerock/iec/iec-edge/1.0.0-RC2/iec-edge-1.0.0-RC2-service-linux-x86_64-lr-richos.tar)
+  * [IEC Service](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-service-linux-x86_64-lr-richos-6.5.0.tgz)
 * to `sdk/resources`
-  * [IEC SDK](http://maven.forgerock.org/repo/internal-releases/org/forgerock/iec/iec-edge/1.0.0-RC2/iec-edge-1.0.0-RC2-sdk-linux-x86_64-lr-richos.tar)
+  * [IEC SDK](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-sdk-linux-x86_64-lr-richos-6.5.0.tgz)
 
 ### Build and Run
 
@@ -52,7 +52,7 @@ The container has been set up with the following properties:
 * AM admin password: `password`
 
 The resources for installing the AM plugin for the IEC is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to install the plugin and configure AM.
+in the [Installation Guide](../docs/iec-installation-guide.md) to install the plugin and configure AM. In order to access AM's admin console and the Edge Identity Manager ensure that the host system's `/etc/hosts` file contains the network address of the `am` container: `172.16.0.10 am.iec.com`.
 
 ### Install and configure the IEC Service
 

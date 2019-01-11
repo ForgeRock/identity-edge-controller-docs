@@ -13,8 +13,8 @@ RUN /bin/bash -c "source /opt/forgerock/am/am_commands.sh && install_am && modif
 
 # Add IEC resources
 WORKDIR /root/forgerock
-COPY resources/iec-edge-*-am-plugin.tar .
-ADD resources/iec-edge-*-edge-identity-manager.war .
+COPY resources/iec-am-plugin-*.tgz .
+ADD resources/edge-identity-manager-*.war .
 
 # Set bash as the default command in the new container
 CMD ["bash"]

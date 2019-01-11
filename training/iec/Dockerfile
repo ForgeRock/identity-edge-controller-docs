@@ -8,7 +8,7 @@ RUN apt-get update --yes && \
 
 # Add IEC resources
 WORKDIR /root/forgerock
-COPY resources/iec-edge-*-service-linux-x86_64-lr-richos.tar .
+COPY resources/iec-service-linux-x86_64-lr-richos-*.tgz .
 
 # Set bash as the default command in the new container
 CMD ["bash"]
