@@ -14,4 +14,4 @@ The IEC consists of four components:
 * The Edge AM plugin adds IoT specific functionality to AM. It provides a single secure communication point for the IEC Service and allows the service to perform tasks like registering edge nodes and retrieving OAuth2 tokens.
 * The Edge Identity Manager provides a User Interface to AM for viewing and managing device identities.
 
-![IEC components](images/IEC-Components-V1.0.0.png "IEC Components")
+![IEC components](images/IEC-Components-V1.0.1.png "IEC Components")
