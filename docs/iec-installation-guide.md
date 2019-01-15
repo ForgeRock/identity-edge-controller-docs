@@ -82,9 +82,24 @@ Firstly, it should be ensured that the device can communicate with the AM instan
 
     curl --request GET  http://am.iec.com:8080/openam/json/serverinfo/*
 
-Unpack the tarball and open the IEC Service configuration file:
+Unpack the tarball:
 
     tar -xzf iec-service-*.tgz
+ 
+The following files are contained in the tarball:
+
+|File           |Type               |Directory After Installation             |Description                                                                        |
+|---            |---                |---                    |---                                                                                |
+|iecservice     |static         |/opt/forgerock/iec/bin |Main IEC Service executable.                                                       |
+|iec.service    |static    |/lib/systemd/system    |Systemd unit file.                                                                 |
+|lib.*          |static |/opt/forgerock/iec/lib |3rd party libraries for IEC Service.                                               |
+|*.ta           |static|/lib/optee_armtz       |IEC trusted application in default OP-TEE TA directory. (OP-TEE installation only) |       |
+|iecutil            |temporary        |- |IEC Utility executable used at install time and removed after system setup.           |
+|install.sh         |temporary             |- |Bash script used to perform installation and removed after system setup.   |
+|iec-config.json    |temporary             |- |IEC  Service configuration used at install time and removed after system setup.           |
+
+Open the IEC Service configuration file:
+
     vim iec-config.json
 
 Change the following values:
@@ -96,6 +111,14 @@ Run the install script:
 
     ./install.sh
 
+The following files are created during the installation process or on first run:
+
+|File                        |Directory             |Description                                                                        |
+|---            |---                    |---                                                                                |
+|iec-service.db     |/var/opt/forgerock/iec |IEC Service database, created at install time. (RichOS installation only)|
+|TA secure storage  |/data/tee              |TA secure storage files, created at install time. (OP-TEE installation only)           |
+|iecservice.log     |/var/opt/forgerock/iec |IEC Service log file.                                                                  |
+
 The IEC is now installed and running as a daemon. If the target system is a Docker image or does not support systemctl, you will get a "Failed to connect to bus: No such file or directory" message. You can start the IEC Service manually with:
 
     /opt/forgerock/iec/bin/iecservice &
@@ -103,33 +126,6 @@ The IEC is now installed and running as a daemon. If the target system is a Dock
 The IEC will repeatedly attempt to register itself with AM. A registered IEC will appear as an identity in the defined `edge` realm in the AM instance. This can be confirmed via the AM admin console or the Edge Identity Manager.
 
 In production, once the IEC Service has been successfully installed the files extracted from `iec-service-*.tgz` should be deleted.
-
-Listed below are the files used and created during the installation process.
-
-**Static files**
-
-|File           |Type               |Directory              |Description                                                                        |
-|---            |---                |---                    |---                                                                                |
-|iecservice     |executable         |/opt/forgerock/iec/bin |Main IEC Service executable.                                                       |
-|iec.service    |systemd service    |/lib/systemd/system    |Systemd unit file.                                                                 |
-|lib.*          |3rd party libraries|/opt/forgerock/iec/lib |3rd party libraries for IEC Service.                                               |
-|*.ta           |trusted application|/lib/optee_armtz       |IEC trusted application in default OP-TEE TA directory. (OP-TEE installation only) |
-
-**Dynamic files**
-
-|File               |Type               |Directory              |Description                                                                            |
-|---                |---                |---                    |---                                                                                    |
-|iec-service.db     |persistent data    |/var/opt/forgerock/iec |IEC Service configuration database, created at install time. (RichOS installation only)|
-|iecservice.log     |log file           |/var/opt/forgerock/iec |IEC Service log file.                                                                  |
-|TA secure storage  |persistent data    |/data/tee              |TA secure storage files, created at install time. (OP-TEE installation only)           |
-
-**Temporary files**
-
-|File               |Type               |Directory                          |Description                                                    |
-|---                |---                |---                                |---                                                            |
-|iecutil            |executable         |`iec-service-*.tgz` extraction dir |Used at install time and removed after system setup.           |
-|install.sh         |script             |`iec-service-*.tgz` extraction dir |Used to perform installation and removed after system setup.   |
-|iec-config.json    |config             |`iec-service-*.tgz` extraction dir |Used at install time and removed after system setup.           |
 
 ### Installing a client that uses the IEC SDK
 
