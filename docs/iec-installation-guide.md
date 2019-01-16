@@ -4,9 +4,9 @@
 
 Install AM 6.5 as described in the [Quick Start Guide](https://backstage.forgerock.com/docs/am/6.5/quick-start-guide/index.html). In production deployments, HTTPS should be used to protect network traffic. See [securing communications](https://backstage.forgerock.com/docs/am/6.5/install-guide/#secure-communications) for more information about securing AM. If HTTPS is enabled, then the IEC needs access to the certificate. This can be done by placing the certificate in the Operating System's certificate store.
 
-### Install AM plugin
+### Install IEC AM Plugin
 
-Copy the AM plugin to the AM web server. For example when using Tomcat with its home directory stored in the variable TOMCAT_HOME and AM installed to `${TOMCAT_HOME}/webapps/openam`, then:
+Copy the IEC AM Plugin to the AM web server. For example when using Tomcat with its home directory stored in the variable TOMCAT_HOME and AM installed to `${TOMCAT_HOME}/webapps/openam`, then:
 
     tar -xzf iec-am-plugin-*.tgz
     cp am-iec-plugin-*.jar ${TOMCAT_HOME}/webapps/openam/WEB-INF/lib
@@ -82,7 +82,7 @@ Firstly, it should be ensured that the device can communicate with the AM instan
 
     curl --request GET  http://am.iec.com:8080/openam/json/serverinfo/*
 
-Unpack the tarball and open the IEC service configuration file:
+Unpack the tarball and open the IEC Service configuration file:
 
     tar -xzf iec-service-*.tgz
     vim iec-config.json
@@ -102,7 +102,34 @@ The IEC is now installed and running as a daemon. If the target system is a Dock
 
 The IEC will repeatedly attempt to register itself with AM. A registered IEC will appear as an identity in the defined `edge` realm in the AM instance. This can be confirmed via the AM admin console or the Edge Identity Manager.
 
-In production, once the IEC Service has been successfully installed the configuration file should be deleted.
+In production, once the IEC Service has been successfully installed the files extracted from `iec-service-*.tgz` should be deleted.
+
+Listed below are the files used and created during the installation process.
+
+**Static files**
+
+|File           |Type               |Directory              |Description                                                                        |
+|---            |---                |---                    |---                                                                                |
+|iecservice     |executable         |/opt/forgerock/iec/bin |Main IEC Service executable.                                                       |
+|iec.service    |systemd service    |/lib/systemd/system    |Systemd unit file.                                                                 |
+|lib.*          |3rd party libraries|/opt/forgerock/iec/lib |3rd party libraries for IEC Service.                                               |
+|*.ta           |trusted application|/lib/optee_armtz       |IEC trusted application in default OP-TEE TA directory. (OP-TEE installation only) |
+
+**Dynamic files**
+
+|File               |Type               |Directory              |Description                                                                            |
+|---                |---                |---                    |---                                                                                    |
+|iec-service.db     |persistent data    |/var/opt/forgerock/iec |IEC Service configuration database, created at install time. (RichOS installation only)|
+|iecservice.log     |log file           |/var/opt/forgerock/iec |IEC Service log file.                                                                  |
+|TA secure storage  |persistent data    |/data/tee              |TA secure storage files, created at install time. (OP-TEE installation only)           |
+
+**Temporary files**
+
+|File               |Type               |Directory                          |Description                                                    |
+|---                |---                |---                                |---                                                            |
+|iecutil            |executable         |`iec-service-*.tgz` extraction dir |Used at install time and removed after system setup.           |
+|install.sh         |script             |`iec-service-*.tgz` extraction dir |Used to perform installation and removed after system setup.   |
+|iec-config.json    |config             |`iec-service-*.tgz` extraction dir |Used at install time and removed after system setup.           |
 
 ### Installing a client that uses the IEC SDK
 
@@ -115,7 +142,7 @@ Add the lib directory to the PATH e.g.
     export LD_LIBRARY_PATH=~/forgerock/lib
     export DYLD_LIBRARY_PATH=~/forgerock/lib
 
-To test the SDK, run the simpleclient example application:
+To test the IEC SDK, run the simpleclient example application:
 
     cd ~/forgerock/examples/simpleclient
     cp ~/forgerock/sdk-config.json .
@@ -128,7 +155,7 @@ Change the following values, save and exit:
 
 * zmq_client.endpoint: `tcp://172.16.0.11:5556`
 
-Use the IEC utility to initialise the SDK and run the example:
+Use the IEC utility to initialise the IEC SDK and run the example:
 
     ~/forgerock/iecutil --file sdk-config.json --initialise sdk
     ./simpleclient
@@ -137,10 +164,10 @@ The client should register successfully and retrieve OAuth2 tokens. Confirm that
 
 When writing a C client application, use the following as reference:
 
-* SDK API - ${SDK_DIR}/include/libiecclient.h
+* IEC SDK API - ${SDK_DIR}/include/libiecclient.h
 * Client example programs - ${SDK_DIR}/examples/
 
-Compile against the IEC client library. The SDK requires the Sodium and ZMQ libraries (supplied with the SDK distribution) e.g.
+The IEC SDK requires the Sodium and ZMQ libraries (supplied with the IEC SDK distribution) for compilation e.g.
 
     libs="-liecclient -lsodium -lzmq"
     gcc ${ex_dir}/${ex}.c -I${SDK_DIR}/include -L${SDK_DIR}/lib ${libs}

@@ -12,7 +12,7 @@ Download the AM and IEC resources,
 * to `am/resources`
   * [Access Management](https://backstage.forgerock.com/downloads/get/familyId:am/productId:am/minorVersion:6.5/version:6.5.0/releaseType:full/distribution:war)
   * [Amster](https://backstage.forgerock.com/downloads/get/familyId:am/productId:amster/minorVersion:6.5/version:6.5.0/releaseType:full/distribution:zip)
-  * [AM Plugin for the IEC](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-am-plugin-6.5.0.tgz)
+  * [IEC AM Plugin](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-am-plugin-6.5.0.tgz)
   * [Edge Identity Manager](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/edge-identity-manager-6.5.0.war)
 * to `iec/resources`
   * [IEC Service](http://abondance.internal.forgerock.com/pkg/servers/forgerock/IEC/6.5.0/iec-service-linux-x86_64-lr-richos-6.5.0.tgz)
@@ -27,10 +27,9 @@ Build and start the environment in the background:
 
     docker-compose up -d --build
 
-Stop the environment:
+There are many ways to interact with the environment after it has started. To see a list of commands run:
 
-    docker-compose down
-
+    docker-compose --help
 
 ### Install and configure AM
 
@@ -63,7 +62,7 @@ In a new terminal run:
     docker exec -it iec bash
 
 The resources for installing the IEC Service is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the service.
+in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the IEC Service.
 
 The container has been set up with the following properties:
 
@@ -76,7 +75,7 @@ In a new terminal run:
     docker exec -it sdk bash
 
 The resources for installing the IEC SDK is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the SDK.
+in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the IEC SDK.
 
 The container has been set up with the following properties:
 
