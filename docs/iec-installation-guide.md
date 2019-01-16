@@ -88,15 +88,15 @@ Unpack the tarball:
  
 The following files are contained in the tarball:
 
-|File           |Type               |Directory After Installation             |Description                                                                        |
-|---            |---                |---                    |---                                                                                |
-|iecservice     |static         |/opt/forgerock/iec/bin |Main IEC Service executable.                                                       |
-|iec.service    |static    |/lib/systemd/system    |Systemd unit file.                                                                 |
-|lib.*          |static |/opt/forgerock/iec/lib |3rd party libraries for IEC Service.                                               |
-|*.ta           |static|/lib/optee_armtz       |IEC trusted application in default OP-TEE TA directory. (OP-TEE installation only) |       |
-|iecutil            |temporary        |- |IEC Utility executable used at install time and removed after system setup.           |
-|install.sh         |temporary             |- |Bash script used to perform installation and removed after system setup.   |
-|iec-config.json    |temporary             |- |IEC  Service configuration used at install time and removed after system setup.           |
+|File |Directory After Installation |Description |
+|--- |--- |--- |
+|iecservice |/opt/forgerock/iec/bin |Main IEC Service executable. |
+|iec.service |/lib/systemd/system |Systemd unit file. |
+|lib.* |/opt/forgerock/iec/lib |3rd party libraries for IEC Service. |
+|*.ta |/lib/optee_armtz |IEC trusted application in default OP-TEE TA directory. (OP-TEE installation only) |
+|iecutil |- |IEC Utility executable used at install time and removed after system setup. |
+|install.sh |- |Bash script used to perform installation and removed after system setup. |
+|iec-config.json |- |IEC Service configuration used at install time and removed after system setup. |
 
 Open the IEC Service configuration file:
 
