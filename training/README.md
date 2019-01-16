@@ -52,7 +52,9 @@ The container has been set up with the following properties:
 * AM admin password: `password`
 
 The resources for installing the AM plugin for the IEC is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to install the plugin and configure AM. In order to access AM's admin console and the Edge Identity Manager ensure that the host system's `/etc/hosts` file contains the network address of the `am` container: `172.16.0.10 am.iec.com`.
+in the [Installation Guide](../docs/iec-installation-guide.md) to install the plugin and configure AM.
+In order to access AM's admin console and the Edge Identity Manager ensure that the host system's `/etc/hosts` file
+contains the network address of the `am` container: `127.0.0.1	am.iec.com`, using localhost in this case.
 
 ### Install and configure the IEC Service
 
