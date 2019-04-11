@@ -96,3 +96,12 @@ The container has been set up with the following properties:
 
 The resources for installing the IEC SDK is in `/root/forgerock`. Follow the installation instructions
 in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the IEC SDK.
+
+If you are already familiar with the installation process then you can quickly prepare a new environment by running
+the below command in the container:
+
+    quick_install
+
+This command will perform all the instructions in the installation guide to unpack the IEC SDK and modify the
+configuration for the training environment. It will leave the environment in the same state as it would be in after
+manually performing the steps in the installation guide.
