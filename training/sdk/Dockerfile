@@ -10,6 +10,7 @@ RUN apt-get update --yes && \
 # Add IEC resources
 WORKDIR /root/forgerock
 COPY resources/iec-sdk-linux-x86_64-lr-richos-*.tgz .
+COPY examples ./examples
 ADD commands.sh /opt/forgerock/iec/commands.sh
 RUN chmod a+x /opt/forgerock/iec/commands.sh
 RUN /bin/bash -c "echo \"source /opt/forgerock/iec/commands.sh\" >> /root/.bashrc"
