@@ -31,9 +31,11 @@ function prepare_iec_sdk() {
 }
 
 #
-# Quick install will bring the gateway environment to the state
+# Quick install will bring the device environment to the state
 # it would be in after the installation guide has been completed
 #
 function quick_install() {
 	prepare_iec_sdk
+	export LD_LIBRARY_PATH=~/forgerock/lib
+	export DYLD_LIBRARY_PATH=~/forgerock/lib
 }
