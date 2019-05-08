@@ -50,8 +50,8 @@ The container has been set up with the following properties:
 * AM admin username: `amadmin`
 * AM admin password: `password`
 
-The resources for installing the IEC AM Plugin is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to install the IEC AM Plugin and configure AM.
+The resources for installing the IEC AM Plugin are in `/root/forgerock`. Follow the installation instructions
+in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#before-you-start) to install the IEC AM Plugin and configure AM.
 In order to access AM's admin console and the Edge Identity Manager ensure that the host system's `/etc/hosts` file
 contains the network address of the `am` container: `127.0.0.1	am.iec.com`, using localhost in this case.
 
@@ -74,7 +74,7 @@ The container has been set up with the following properties:
 * IP address: `172.16.0.11`
 
 The resources for installing the IEC Service is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the IEC Service.
+in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#installing-iec-service) to configure and install the IEC Service.
 
 If you are already familiar with the installation process then you can quickly prepare a new environment by running
 the below command in the container:
@@ -94,5 +94,5 @@ The container has been set up with the following properties:
 
 * IP address: `172.16.0.12`
 
-The resources for installing the IEC SDK is in `/root/forgerock`. Follow the installation instructions
-in the [Installation Guide](../docs/iec-installation-guide.md) to configure and install the IEC SDK.
+The resources for installing the IEC SDK are in `/root/forgerock`. Follow the installation instructions
+in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#install-client) to configure and install the IEC SDK.

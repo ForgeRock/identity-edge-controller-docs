@@ -27,7 +27,7 @@ Components in the example are:
 
 - ForgeRock BackStage account with access to AM, DS and the IEC
 - [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
-- AM installed as described in the [Installation Guide](../../docs/iec-installation-guide.md)
+- AM installed as described in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#before-you-start)
 - AM's OAuth2 endpoints must be accessible from AWS Lambda functions (exposed to the Internet)
 - AWS Account and a reasonable understanding of the the following AWS services:
     - AWS IoT - https://docs.aws.amazon.com/iot/latest/developerguide/what-is-aws-iot.html
@@ -36,7 +36,7 @@ Components in the example are:
 
 ### Prepare AM
 
-AM must be installed and configured as described in the [Installation Guide](../../docs/iec-installation-guide.md). It
+AM must be installed and configured as described in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#before-you-start). It
 must also be exposed to the internet in order for the AWS Lambda function to access AM's OAuth2 `/introspect` endpoint.
 
 For this integration example we deployed AM with the Google Cloud Platform, Kubernetes Engine and exposed the container
