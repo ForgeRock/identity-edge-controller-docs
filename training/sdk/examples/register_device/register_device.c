@@ -21,9 +21,11 @@
 
 int main() {
     int result = -1;
+    char deviceId[] = "Narwhal";
+    char* registrationData = "{\"custom_data\": \"here\"}";
 
-    printf("\n*** Initialising the SDK dynamically\n");
-    printf("*** SDK function(s): iec_initialise\n\n");
+    printf("\n*** Registering a device\n");
+    printf("*** SDK function(s): iec_initialise, iec_device_register\n\n");
 
     printf("Setting dynamic attributes... ");
     if( iec_set_attribute(IEC_ENDPOINT, "tcp://172.16.0.11:5556") < 0
@@ -31,7 +33,7 @@ int main() {
         || iec_set_attribute(IEC_PUBLICKEY, "uH&^{aIzDw5<>TRbHcu0q#(zo]uLl6Wyv/1{/^C+") < 0
         || iec_set_attribute(IEC_SERVERPUBLICKEY, "9m27tKf3aoNWQ(G-f[>W]gP%f&+QxPD:?mX*)hdJ") < 0
         || iec_set_attribute(IEC_MSGTIMEOUTSEC, "5") < 0
-        || iec_set_attribute(IEC_CLIENT_ID, "iec-dynamic-client") < 0
+        || iec_set_attribute(IEC_CLIENT_ID, "reg-dev-client") < 0
         || iec_set_attribute(IEC_LOGGING_ENABLED, "true") < 0
         || iec_set_attribute(IEC_LOGGING_DEBUG, "true") < 0
         || iec_set_attribute(IEC_LOGGING_LOGFILE, "client.log") < 0
@@ -52,4 +54,15 @@ int main() {
         return result;
     }
     printf("Done\n\n");
+
+    printf("Registering device (id: %s)... ", deviceId);
+    result = iec_device_register(deviceId, registrationData);
+    if (result < 0) {
+        char* error = iec_last_error();
+        printf("Registration request failed: %s\n", error);
+        free(error);
+        return result;
+    }
+    printf("Done\n\n");
+
 }
