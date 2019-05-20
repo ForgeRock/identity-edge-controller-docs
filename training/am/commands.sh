@@ -167,4 +167,5 @@ function quick_install() {
     configure_ds
     configure_am
     install_edge_id_manager
+    restart_tomcat
 }
