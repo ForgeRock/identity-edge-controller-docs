@@ -24,7 +24,7 @@ int main() {
     char deviceId[] = "Rhino";
     char* registrationData = NULL;
 
-    printf("\n*** Registering a device\n");
+    printf("\n*** Getting OAuth 2.0 access and ID tokens for a device\n");
     printf("*** SDK function(s): iec_initialise, iec_device_register, iec_device_tokens, iec_json_*\n\n");
 
     printf("Setting dynamic attributes... ");
@@ -88,5 +88,5 @@ int main() {
         return -1;
     }
     printf("\taccess token: %s\n", accessToken);
-    printf("\tid token: %s\n", idToken);
+    printf("\tid token: %s\n\n", idToken);
 }

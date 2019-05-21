@@ -24,7 +24,7 @@ int main() {
     char deviceId[] = "Ibex";
     char* registrationData = NULL;
 
-    printf("\n*** Registering a device\n");
+    printf("\n*** Getting configuration for a device\n");
     printf("*** SDK function(s): iec_initialise, iec_device_register, iec_device_configuration, iec_json_*\n\n");
 
     printf("Setting dynamic attributes... ");
