@@ -266,7 +266,9 @@
     },
     "deviceCodeConfig": {
       "devicePollInterval": 5,
-      "deviceCodeLifetime": 300
+      "deviceCodeLifetime": 300,
+      "verificationUrl": "&{am.url}/oauth2/realms/root/realms/edge/device/user?nonce=0"
+
     },
     "_type": {
       "_id": "oauth-oidc",
