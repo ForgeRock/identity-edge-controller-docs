@@ -2,10 +2,17 @@
 
 ### Prerequisites
 
-* ForgeRock BackStage account with access to AM, DS and the IEC
+* ForgeRock BackStage account with access to AM and the IEC
 * [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
+* [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
 ### Prepare the environment
+
+Once you have installed the prerequisite software, clone this repository to your local machine and change to the
+training directory:
+
+    git clone https://github.com/ForgeRock/identity-edge-controller-docs.git
+    cd identity-edge-controller-docs/training/
 
 Download the AM and IEC resources,
 
@@ -51,9 +58,10 @@ The container has been set up with the following properties:
 * AM admin password: `password`
 
 The resources for installing the IEC AM Plugin are in `/root/forgerock`. Follow the installation instructions
-in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#before-you-start) to install the IEC AM Plugin and configure AM.
-In order to access AM's admin console and the Edge Identity Manager ensure that the host system's `/etc/hosts` file
-contains the network address of the `am` container: `127.0.0.1	am.iec.com`, using localhost in this case.
+in the [install guide](https://backstage.forgerock.com/docs/iec/6.5/install-guide/#install-AM-plugin) to install the
+IEC AM Plugin and configure AM. In order to access AM's admin console and the Edge Identity Manager ensure that the
+host system's `/etc/hosts` file contains the network address of the `am` container: `127.0.0.1	am.iec.com`, using
+localhost in this case.
 
 If you are already familiar with the installation process then you can quickly prepare a new environment by running
 the below command in the container:
@@ -105,3 +113,9 @@ the following command in the container:
 This command will perform all the instructions in the installation guide to unpack the IEC SDK and modify the
 configuration for the training environment. It will leave the environment in the same state as it would be in after
 manually performing the steps in the installation guide.
+
+### Client application developers guide
+
+Now that all the components are installed and configured, follow the
+[developers guide](https://backstage.forgerock.com/docs/iec/6.5/dev-guide) to learn how to build client applications
+using the IEC SDK. The developers guide can be used alongside the training environment.
