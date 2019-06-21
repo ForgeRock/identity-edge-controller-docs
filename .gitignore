@@ -9,3 +9,8 @@ integrations/awsiot/examples/aws_custom_auth/pkg
 
 # 3rd Party libraries
 integrations/awsiot/examples/aws_custom_auth/src/github.com
+
+# GCP examples
+integrations/gcpiot/examples/dist
+integrations/gcpiot/examples/resources/*
+!integrations/gcpiot/examples/resources/.keep

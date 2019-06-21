@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
@@ -27,7 +28,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
+	"stash.forgerock.org/iot/identity-edge-controller-core/configuration"
+	"stash.forgerock.org/iot/identity-edge-controller-core/zmqclient"
 	"time"
 )
 
@@ -35,6 +39,49 @@ var (
 	configRE  = regexp.MustCompile(`/devices/\w*/config`)
 	commandRE = regexp.MustCompile(`/devices/\w*/command`)
 )
+
+// registerWithIEC initialises a SDK client and registers a device with FR IEC
+// The public key of the device is loaded from file and passed in with the registration call
+func registerWithIEC(deviceID, publicKeyPath string) (err error) {
+	// initialise client
+	config := configuration.SDKConfig{
+		ZMQClient: configuration.ZMQClient{
+			Endpoint:                  "tcp://172.16.0.11:5556",
+			SecretKey:                 "zZZfS7BthsFLMv$]Zq{tNNOtd69hfoBsuc-lg1cM",
+			PublicKey:                 "uH&^{aIzDw5<>TRbHcu0q#(zo]uLl6Wyv/1{/^C+",
+			ServerPublicKey:           "9m27tKf3aoNWQ(G-f[>W]gP%f&+QxPD:?mX*)hdJ",
+			MessageResponseTimeoutSec: 5,
+		},
+		ClientConfig: configuration.ClientConfig{"go-client"},
+		Logging: configuration.Logging{
+			Enabled: true,
+			Debug:   true,
+			Logfile: "client.log",
+		},
+	}
+	if result := zmqclient.Initialise(zmqclient.UseDynamicConfig(config)); result.Failure() {
+		return fmt.Errorf(result.Error.String())
+	}
+
+	// load public key into JSON object
+	data := struct {
+		PublicKey []byte `json:"public_key"`
+	}{}
+	data.PublicKey, err = ioutil.ReadFile(publicKeyPath)
+	if err != nil {
+		return err
+	}
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// register device with IEC
+	if result := zmqclient.DeviceRegister(deviceID, string(b)); result.Failure() {
+		return fmt.Errorf(result.Error.String())
+	}
+	return nil
+}
 
 // createJWT returns a signed JWT that can be used to as a password for the MQTT server
 // In Google IoT Core, the maximum lifetime of a token is 24 hours + skew
@@ -170,11 +217,18 @@ func configTopic(deviceID string) string {
 func main() {
 	const qos = 1
 
+	// get working directory
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	deviceID := flag.String("deviceID", "", "Device ID")
 	projectID := flag.String("projectID", "", "GCP Project ID")
 	region := flag.String("region", "", "GCP Project Region of IoT Core Registry")
 	registryID := flag.String("registryID", "", "GCP IoT Core Registry ID")
 	privateKey := flag.String("privateKey", "", "Path to private key of device")
+	publicKey := flag.String("publicKey", "", "Path to public key of device")
 	rootCA := flag.String("rootCA", "", "Path to Google root CA certificate")
 	debug := flag.Bool("debug", false, "Switch on debug output (optional)")
 	flag.Parse()
@@ -192,18 +246,27 @@ func main() {
 		log.Fatal("Please provide a GCP Registry ID")
 	}
 	if *privateKey == "" {
-		log.Fatal("Please provide a private key")
+		*privateKey = filepath.Join(dir, "resources", "ec_private.pem")
+	}
+	if *publicKey == "" {
+		*publicKey = filepath.Join(dir, "resources", "ec_public.pem")
 	}
 	if *rootCA == "" {
-		log.Fatal("Please provide the path to Google's root certificate")
+		*rootCA = filepath.Join(dir, "resources", "roots.pem")
 	}
 
+	// register device with ForgeRock IEC
+	if err := registerWithIEC(*deviceID, *publicKey); err != nil {
+		log.Fatal(err)
+	}
+
+	// create jwt for MQTT password
 	deviceJWT, err := createJWT(*projectID, *privateKey, time.Hour)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
+	// connect to GCP IoT Core
 	clientID := mqttClientID(*projectID, *region, *registryID, *deviceID)
 	client, err := connectToIOTCore(*rootCA, clientID, deviceJWT, *debug)
 	if err != nil {
