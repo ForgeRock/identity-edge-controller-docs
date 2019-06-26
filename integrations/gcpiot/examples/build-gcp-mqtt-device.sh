@@ -27,4 +27,4 @@ go get -d github.com/mgutz/logxi/v1
 source dep/src/stash.forgerock.org/iot/identity-edge-controller-core/version/platform-linux-x86_64.txt
 source dep/src/stash.forgerock.org/iot/identity-edge-controller-core/version/version.txt
 
-go build -ldflags "${VERSION_INFO}" -tags 'logicrichos securerichos' -o dist/device-mqtt forgerock.org/cmd/device-mqtt
+go build -ldflags "${VERSION_INFO}" -tags 'logicrichos securerichos' -o dist/gcp-device-mqtt forgerock.org/cmd/gcp-device-mqtt

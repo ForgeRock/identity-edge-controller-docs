@@ -64,20 +64,20 @@ func registerWithIEC(deviceID, publicKeyPath string) (err error) {
 	}
 
 	// load public key into JSON object
-	data := struct {
-		PublicKey []byte `json:"public_key"`
-	}{}
-	data.PublicKey, err = ioutil.ReadFile(publicKeyPath)
+	keyBytes, err := ioutil.ReadFile(publicKeyPath)
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(data)
+	data := struct {
+		PublicKey string `json:"public_key"`
+	}{string(keyBytes)}
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
 	// register device with IEC
-	if result := zmqclient.DeviceRegister(deviceID, string(b)); result.Failure() {
+	if result := zmqclient.DeviceRegister(deviceID, string(dataBytes)); result.Failure() {
 		return fmt.Errorf(result.Error.String())
 	}
 	return nil
