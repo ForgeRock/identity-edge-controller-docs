@@ -33,14 +33,14 @@ import com.google.api.client.util.ExponentialBackOff
 import com.google.api.client.util.Sleeper
 
 /*
- *	Start project data
+ *    Start project data
  */
-String projectId = ""
-String cloudRegion = ""
-String registryName = ""
+String projectID = ""
+String region = ""
+String registryID = ""
 String serviceAccountCredentials = ""
 /*
- *	End project data
+ *    End project data
  */
 
 
@@ -102,9 +102,10 @@ if (!identity.isDevice()) {
     return
 }
 
-// Registration data is not mandatory so return if not present
+// Registration data is mandatory in this example so return error if it is undefined
 if (!verifiedClaims.isDefined("registration_data")) {
-    logger.info("Registration data not defined")
+    logger.error("Registration data not defined")
+    authState = FAILURE
     return
 }
 
@@ -112,12 +113,24 @@ if (!verifiedClaims.isDefined("registration_data")) {
 def registrationData = verifiedClaims.get("registration_data")
 def decoded = registrationData.asString().decodeBase64()
 def regJson = new JsonSlurper().parse(decoded)
-if (regJson) {
-	// This is where the registration data can be processed
-	if (regJson.public_key) {
-		def service = buildClient("iot-plugin", serviceAccountCredentials)
-		def registryPath = "projects/${projectId}/locations/${cloudRegion}/registries/${registryName}"
-		def device = createDevice(service, registryPath, identity.name, regJson.public_key)
-    }
+if (!regJson || !regJson.public_key) {
+    logger.error("Registration data is not in the correct form")
+    authState = FAILURE
+    return
 }
+
+// build a cloud iot client and use it to register the device in IoT Core
+def client = buildClient("iot-plugin", serviceAccountCredentials)
+def registryPath = "projects/${projectID}/locations/${region}/registries/${registryID}"
+def device = createDevice(client, registryPath, identity.name, regJson.public_key)
+
+// store MQTT connection information in the device's user configuration so the device can obtain it
+// via a get configuration call
+identity.setUserConfiguration("""{
+    \"mqtt_server_url\":\"tls://mqtt.googleapis.com:8883\",
+    \"protocol_version\":4,
+    \"project_id\":\"$projectID\",
+    \"region\":\"$region\",
+    \"registry_id\":\"$registryID\"}""")
+
 logger.info("Attestation for device '$identity.name' succeeded.")
