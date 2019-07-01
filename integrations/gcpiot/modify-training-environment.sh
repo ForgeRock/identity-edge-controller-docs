@@ -17,7 +17,7 @@
 #
 
 docker cp am/modify-am-container.sh am:root/forgerock/
-docker exec -t am bash -c "./modify-am-container.sh"
+docker exec am bash -c "./modify-am-container.sh"
 
 docker cp examples sdk:/root/forgerock/go-examples
 

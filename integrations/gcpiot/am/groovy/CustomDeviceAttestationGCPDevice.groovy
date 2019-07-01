@@ -124,9 +124,15 @@ def client = buildClient("iot-plugin", serviceAccountCredentials)
 def registryPath = "projects/${projectID}/locations/${region}/registries/${registryID}"
 def device = createDevice(client, registryPath, identity.name, regJson.public_key)
 
-// store MQTT connection information in the device's user configuration so the device can obtain it
-// via a get configuration call
-identity.setUserConfiguration("""{
+// store MQTT connection information in the device's user configuration (at the IEC level)
+// so the device can obtain it via a get configuration call
+Optional<IotIdentity> iec = identity.iec
+if (!iec.isPresent()) {
+    logger.error("Can't find IEC for device")
+    authState = FAILURE
+    return
+}
+iec.get().setUserConfiguration("""{
     \"mqtt_server_url\":\"tls://mqtt.googleapis.com:8883\",
     \"protocol_version\":4,
     \"project_id\":\"$projectID\",
