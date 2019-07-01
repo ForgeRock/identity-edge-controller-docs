@@ -48,7 +48,7 @@
       "org.forgerock.http.protocol.Entity",
       "com.google.api.services.cloudiot.v1.CloudIot$Projects$Locations$Registries$Devices",
       "com.google.api.client.googleapis.javanet.GoogleNetHttpTransport",
-      "retryHttpInitializerWrapper",
+      "RetryHttpInitializerWrapper",
       "java.util.Base64",
       "com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler",
       "org.forgerock.http.protocol.RequestCookies",

@@ -21,7 +21,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.services.cloudiot.v1.CloudIot
 import com.google.api.services.cloudiot.v1.CloudIotScopes
-import com.google.api.services.cloudiot.v1.model.*
+import com.google.api.services.cloudiot.v1.model.Device
+import com.google.api.services.cloudiot.v1.model.DeviceCredential
+import com.google.api.services.cloudiot.v1.model.PublicKeyCredential
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.http.HttpBackOffIOExceptionHandler
 import com.google.api.client.http.HttpResponse
@@ -44,13 +46,13 @@ String serviceAccountCredentials = ""
  */
 
 
-class retryHttpInitializerWrapper implements HttpRequestInitializer {
+class RetryHttpInitializerWrapper implements HttpRequestInitializer {
     final Credential wrappedCredential
     /** One minutes in milliseconds. */
     final int ONE_MINUTE_MILLIS = 60 * 1000
     final Sleeper sleeper
 
-    retryHttpInitializerWrapper(wrappedCredential) {
+    RetryHttpInitializerWrapper(wrappedCredential) {
         this.wrappedCredential = wrappedCredential
         this.sleeper = Sleeper.DEFAULT
     }
@@ -78,7 +80,7 @@ CloudIot buildClient(String appName, String credentials){
     def builder = new CloudIot.Builder(
             GoogleNetHttpTransport.newTrustedTransport(),
             JacksonFactory.getDefaultInstance(),
-            new retryHttpInitializerWrapper(credential))
+            new RetryHttpInitializerWrapper(credential))
     builder.applicationName = appName
     builder.build()
 }

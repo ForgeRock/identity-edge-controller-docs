@@ -74,7 +74,7 @@ func readRegistrationData(publicKeyPath string) (dataString string, err error) {
 	return string(dataBytes), nil
 }
 
-// createJWT returns a signed JWT that can be used to as a password for the MQTT server
+// createJWT returns a signed JWT that can be used as a password for the MQTT server
 // In Google IoT Core, the maximum lifetime of a token is 24 hours + skew
 func createJWT(projectID string, privateKeyPath string, expiration time.Duration) (string, error) {
 	if expiration > 24*time.Hour {
