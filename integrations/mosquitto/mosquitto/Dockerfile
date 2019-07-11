@@ -1,15 +1,5 @@
-FROM golang:1.12.6 as builder
+FROM golang:1.12
 
-RUN go get -d github.com/limaechocharlie/gomozzie
-RUN git clone --branch v1.5.8 --depth 1 https://github.com/eclipse/mosquitto.git
-ENV CGO_CFLAGS="-I/go/mosquitto/lib -I/go/mosquitto/src" CGO_ENABLED=1
-RUN go build -o dist/gomozzie.so -buildmode=c-shared github.com/limaechocharlie/gomozzie
-
-FROM debian:stretch-slim
-
-WORKDIR /mosquitto
-
-# install dependencies
 RUN	apt-get update --yes && \
 	apt-get install --yes \
 	curl \
@@ -20,15 +10,25 @@ RUN	apt-get update --yes && \
     uuid-dev && \
     apt-get clean --yes
 
-# download mosquitto
-RUN	curl http://mosquitto.org/files/source/mosquitto-1.5.8.tar.gz | tar zxf -
+# download and install mosquitto
+RUN	curl http://mosquitto.org/files/source/mosquitto-1.5.8.tar.gz | tar zxf - && \
+    cd mosquitto-1.5.8 && make && make install && cd - && rm -rf mosquitto-1.5.8
 
-# install
-RUN	cd mosquitto-1.5.8 && make && make install && cd - && rm -rf mosquitto-1.5.8
+# get gomozzie plugin for mosquitto
+COPY local /go
+RUN go get -d github.com/limaechocharlie/gomozzie
+
+WORKDIR /mosquitto
 
 # create directories and copy across config and plugin
 RUN mkdir -p config plugin log
-COPY --from=builder /go/dist/gomozzie.so plugin/
+
+# build gomozzie
+ENV CGO_CFLAGS="-I/usr/local/include"
+ENV CGO_ENABLED=1
+RUN go build -o plugin/gomozzie.so -buildmode=c-shared github.com/limaechocharlie/gomozzie
+
+# copy across configuration
 COPY config/mosquitto.conf config/
 
 # add user for mosquitto
