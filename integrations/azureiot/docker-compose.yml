@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  azure:
+    image: azure-client:latest
+    container_name: azure
+    stdin_open: true
+    tty: true
+    build: .
+    networks:
+      - training_iec_net
+    hostname: iot-azure
+
+networks:
+  training_iec_net:
+    external: true

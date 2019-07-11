@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.forgerock</groupId>
+    <artifactId>azure-sdk-libraries</artifactId>
+    <version>1.0.0</version>
+    <name>Azure SDK libraries</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.microsoft.azure.sdk.iot</groupId>
+            <artifactId>iot-service-client</artifactId>
+            <version>1.17.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.5</version>
+        </dependency>
+    </dependencies>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

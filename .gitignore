@@ -6,6 +6,8 @@
 # Build output
 integrations/awsiot/examples/aws_custom_auth/bin
 integrations/awsiot/examples/aws_custom_auth/pkg
+integrations/azureiot/examples/am_scripts/target/
+integrations/azureiot/examples/azure_client/target/
 
 # 3rd Party libraries
 integrations/awsiot/examples/aws_custom_auth/src/github.com

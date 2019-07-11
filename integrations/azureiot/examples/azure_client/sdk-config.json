@@ -1,0 +1,20 @@
+{
+  "zmq_client": {
+    "endpoint": "tcp://172.16.0.11:5556",
+    "secret_key":"zZZfS7BthsFLMv$]Zq{tNNOtd69hfoBsuc-lg1cM",
+    "public_key":"uH&^{aIzDw5<>TRbHcu0q#(zo]uLl6Wyv/1{/^C+",
+    "server_public_key":"9m27tKf3aoNWQ(G-f[>W]gP%f&+QxPD:?mX*)hdJ",
+    "msg_timeout_sec": 5
+  },
+  "logging": {
+    "enabled": true,
+    "debug": true,
+    "max_file_size_mb": 5,
+    "max_backup_files": 5,
+    "max_file_age_days": 0,
+    "compress_file_backups": true
+  },
+  "client_configuration": {
+    "id": "azure-client"
+  }
+}
