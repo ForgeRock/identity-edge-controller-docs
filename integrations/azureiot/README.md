@@ -1,7 +1,27 @@
 ## Azure IoT Integration
 
 ### Introduction
-TBD
+
+The IEC offers just-in-time registration, similar to that of Azure’s provisioning service. However, the IEC uses
+JWT Proof of Possession based attestation by default, with configurable registration and authentication chains.
+To take advantage of the IEC registration process, the Azure IoT platform can be configured to work alongside the IEC
+and delegate device provisioning to the ForgeRock Platform. This integration example demonstrates how a device can be
+registered with the ForgeRock Platform and automatically added to the Azure IoT Hub.
+
+![IEC Azure IoT Integration](../../docs/images/IEC-Azure-IoT-Integration.svg "IEC Azure IoT Integration")
+
+Components in the example are:
+- Client application
+    - registers a device with the ForgeRock platform using the IEC SDK
+    - retrieves the device configuration, containing the Azure IoT Hub connection string, using the IEC SDK
+    - publishes generated telemetry data to the Azure IoT Hub, using the Azure IoT device client SDK
+- IEC Service
+    - facilitates registration and configuration requests for the client application
+- AM
+    - registers edge nodes
+    - adds a device to the Azure IoT Hub
+    - retrieves the Azure IoT Hub connection string and storing it in the device's configuration
+    - supplies device configuration on request
 
 ### Prerequisites
 
