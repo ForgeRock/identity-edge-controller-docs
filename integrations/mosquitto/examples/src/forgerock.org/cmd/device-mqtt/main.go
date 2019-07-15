@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -26,44 +27,49 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"stash.forgerock.org/iot/identity-edge-controller-core/configuration"
+	"stash.forgerock.org/iot/identity-edge-controller-core/logging"
+	"stash.forgerock.org/iot/identity-edge-controller-core/zmqclient"
+	"strings"
+	"sync"
 	"time"
 )
 
 var (
-	//sdkConfig = configuration.SDKConfig{
-	//	ZMQClient: configuration.ZMQClient{
-	//		Endpoint:                  "tcp://172.16.0.11:5556",
-	//		SecretKey:                 "zZZfS7BthsFLMv$]Zq{tNNOtd69hfoBsuc-lg1cM",
-	//		PublicKey:                 "uH&^{aIzDw5<>TRbHcu0q#(zo]uLl6Wyv/1{/^C+",
-	//		ServerPublicKey:           "9m27tKf3aoNWQ(G-f[>W]gP%f&+QxPD:?mX*)hdJ",
-	//		MessageResponseTimeoutSec: 5,
-	//	},
-	//	ClientConfig: configuration.ClientConfig{"go-client"},
-	//	Logging: configuration.Logging{
-	//		Enabled: true,
-	//		Debug:   true,
-	//		Logfile: "client.log",
-	//	},
-	//}
+	sdkConfig = configuration.SDKConfig{
+		ZMQClient: configuration.ZMQClient{
+			Endpoint:                  "tcp://172.16.0.11:5556",
+			SecretKey:                 "zZZfS7BthsFLMv$]Zq{tNNOtd69hfoBsuc-lg1cM",
+			PublicKey:                 "uH&^{aIzDw5<>TRbHcu0q#(zo]uLl6Wyv/1{/^C+",
+			ServerPublicKey:           "9m27tKf3aoNWQ(G-f[>W]gP%f&+QxPD:?mX*)hdJ",
+			MessageResponseTimeoutSec: 5,
+		},
+		ClientConfig: configuration.ClientConfig{"go-client"},
+		Logging: configuration.Logging{
+			Enabled: true,
+			Debug:   true,
+			Logfile: "client.log",
+		},
+	}
 )
 
 // sensorData holds dummy sensor data to publish to the 'event' topic
 type sensorData struct {
-	NoiseLevel         float64 `json:"noise_level"`
-	Illuminance        int     `json:"illuminance"`
-	TimeAliveInSeconds int     `json:"time_alive_in_seconds"`
+	NoiseLevel  float64 `json:"noise_level"`
+	Illuminance int     `json:"illuminance"`
+	UnixTime    int64   `json:"unix_time"`
 }
 
 // fluctuate randomly fluctuates the values in the sensorData
-func (d *sensorData) fluctuate(timeAlive int) {
+func (d *sensorData) fluctuate(u int64) {
 	d.Illuminance += rand.Intn(10) - 5
 	d.NoiseLevel += rand.Float64() - 0.5
-	d.TimeAliveInSeconds = timeAlive
+	d.UnixTime = u
 }
 
 func (d *sensorData) String() string {
-	return fmt.Sprintf("{Noise Level %f, Illuminance %d, Time Alive %d}", d.NoiseLevel, d.Illuminance,
-		d.TimeAliveInSeconds)
+	return fmt.Sprintf("{Noise Level %f, Illuminance %d, Time %d}", d.NoiseLevel, d.Illuminance,
+		d.UnixTime)
 }
 
 // mqttLogger implements the logger interface used by the MQTT package
@@ -91,15 +97,51 @@ func mqttMustConnect(opts *mqtt.ClientOptions) mqtt.Client {
 	return client
 }
 
+// parseTokens extracts the access token from the tokens string
+// if the token is stateless, then the expiry time from the token is returned
+// if the token is stateful, then the zero time instant is returned
+func parseTokens(s string) (string, time.Time) {
+	var expiry time.Time
+	// extract the access token from the string
+	tokens := struct {
+		AccessToken string `json:"access_token"`
+	}{}
+	if err := json.Unmarshal([]byte(s), &tokens); err != nil {
+		panic(err)
+	}
+
+	// check if the token looks like a jwt
+	array := strings.Split(tokens.AccessToken, ".")
+	if len(array) != 3 {
+		return tokens.AccessToken, expiry
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(array[1])
+	if err != nil {
+		return tokens.AccessToken, expiry
+	}
+
+	// extract the expiry time from the payload
+	statelessToken := struct {
+		Exp int64 `json:"exp"`
+	}{}
+	err = json.Unmarshal(payload, &statelessToken)
+	if err != nil && statelessToken.Exp == 0 {
+		return tokens.AccessToken, expiry
+	}
+	return tokens.AccessToken, time.Unix(statelessToken.Exp, 0)
+}
+
 func main() {
 	const qos = 1
+	var mux sync.Mutex
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	deviceID := flag.String("deviceID", "", "Device ID (required)")
-	serverURI := flag.String("serverURI", "tcp://127.0.0.1:1883", "URI of MQTT server")
-	debug := flag.Bool("debug", false, "Switch on debug output (optional)")
+	serverURI := flag.String("serverURI", "tcp://172.16.0.13:1883", "URI of MQTT server")
+	reconnectTime := flag.Int("reconnectTime", 10, "Default time (in seconds) used to reconnect client")
+	debug := flag.Bool("debug", false, "Switch on debug output")
 	flag.Parse()
 
 	if *deviceID == "" {
@@ -111,23 +153,23 @@ func main() {
 	}
 
 	// initialise SDK client
-	//if result := zmqclient.Initialise(zmqclient.UseDynamicConfig(sdkConfig)); result.Failure() {
-	//	log.Fatal(result.Error.String())
-	//}
+	if result := zmqclient.Initialise(zmqclient.UseDynamicConfig(sdkConfig)); result.Failure() {
+		log.Fatal(result.Error.String())
+	}
 
 	// register device with ForgeRock IEC
-	//if result := zmqclient.DeviceRegister(*deviceID, registrationData); result.Failure() {
-	//	log.Fatal(result.Error.String())
-	//}
+	if result := zmqclient.DeviceRegister(*deviceID, "{}"); result.Failure() {
+		log.Fatal(result.Error.String())
+	}
 
-	c := make(chan time.Time, 10)
+	c := make(chan time.Time, 1)
 	defer close(c)
 
 	// set MQTT client options
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(*serverURI)
 	opts.SetClientID(*deviceID)
-	opts.SetDefaultPublishHandler( func(client mqtt.Client, message mqtt.Message) {
+	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		fmt.Printf("Published: topic= %s; message= %s\n", message.Topic(), message.Payload())
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, e error) {
@@ -138,24 +180,41 @@ func main() {
 	})
 	opts.SetCredentialsProvider(func() (username string, password string) {
 		// get OAuth2 access token ForgeRock IEC
-		//tokens, result := zmqclient.DeviceTokens(*deviceID)
-		//if result.Failure(){
-		//	panic(result.String())
-		//}
-		c <- time.Now().Add(10 * time.Second)
-		return "unused", "password"
+		var (
+			tokens string
+			result logging.Result
+		)
+		for {
+			tokens, result = zmqclient.DeviceTokens(*deviceID)
+			if result.Success() {
+				break
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+		accessToken, expiry := parseTokens(tokens)
+		if expiry.IsZero() {
+			expiry = time.Now().Add(time.Duration(*reconnectTime) * time.Second)
+			fmt.Println("Using DEFAULT expiry time", expiry)
+		} else {
+			fmt.Println("Using TOKEN expiry time", expiry)
+		}
+		c <- expiry
+		return "unused", accessToken
 	})
 	client := mqttMustConnect(opts)
 
+	// create a goroutine that reconnects the mqtt client at expiry time
 	go func() {
 		var timer *time.Timer
+		defer timer.Stop()
 		for {
 			select {
 			case <-ctx.Done():
-				timer.Stop()
 				return
 			case expire := <-c:
 				timer = time.AfterFunc(expire.Sub(time.Now()), func() {
+					mux.Lock()
+					defer mux.Unlock()
 					if client.IsConnected() {
 						client.Disconnect(20)
 					}
@@ -167,27 +226,28 @@ func main() {
 
 	// create a goroutine to regularly publish telemetry events
 	go func() {
-		timeInterval := 2
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
 		data := sensorData{
-			NoiseLevel:         10.0, // leaf rustling
-			Illuminance:        400,  // sunrise
-			TimeAliveInSeconds: 0,
+			NoiseLevel:  10.0, // leaf rustling
+			Illuminance: 400,  // sunrise
 		}
-		for timeAlive := 0; ; timeAlive += timeInterval {
+		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
-				time.Sleep(time.Duration(timeInterval) * time.Second)
-				data.fluctuate(timeAlive)
+			case c := <-ticker.C:
+				data.fluctuate(c.Unix())
 				dataBytes, err := json.Marshal(data)
 				if err != nil {
 					continue
 				}
+				mux.Lock()
 				fmt.Println("Publishing sensor data:", data)
 				if token := client.Publish(deviceTopic(*deviceID, "data"), qos, false, dataBytes); token.Wait() && token.Error() != nil {
 					log.Println(token.Error())
 				}
+				mux.Unlock()
 			}
 		}
 	}()
