@@ -19,7 +19,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -30,7 +29,7 @@ import (
 	"stash.forgerock.org/iot/identity-edge-controller-core/configuration"
 	"stash.forgerock.org/iot/identity-edge-controller-core/logging"
 	"stash.forgerock.org/iot/identity-edge-controller-core/zmqclient"
-	"strings"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -97,38 +96,22 @@ func mqttMustConnect(opts *mqtt.ClientOptions) mqtt.Client {
 	return client
 }
 
-// parseTokens extracts the access token from the tokens string
-// if the token is stateless, then the expiry time from the token is returned
-// if the token is stateful, then the zero time instant is returned
-func parseTokens(s string) (string, time.Time) {
-	var expiry time.Time
+// mustParseTokens extracts the access token and the expiry time (in seconds) from the tokens string
+// panics if it cannot extract the token or the expiry time
+func mustParseTokens(s string) (string, int64) {
 	// extract the access token from the string
 	tokens := struct {
 		AccessToken string `json:"access_token"`
+		ExpiresIn   string `json:"expires_in"`
 	}{}
 	if err := json.Unmarshal([]byte(s), &tokens); err != nil {
 		panic(err)
 	}
-
-	// check if the token looks like a jwt
-	array := strings.Split(tokens.AccessToken, ".")
-	if len(array) != 3 {
-		return tokens.AccessToken, expiry
-	}
-	payload, err := base64.RawURLEncoding.DecodeString(array[1])
+	expiry, err := strconv.ParseInt(tokens.ExpiresIn, 10, 64)
 	if err != nil {
-		return tokens.AccessToken, expiry
+		panic(err)
 	}
-
-	// extract the expiry time from the payload
-	statelessToken := struct {
-		Exp int64 `json:"exp"`
-	}{}
-	err = json.Unmarshal(payload, &statelessToken)
-	if err != nil && statelessToken.Exp == 0 {
-		return tokens.AccessToken, expiry
-	}
-	return tokens.AccessToken, time.Unix(statelessToken.Exp, 0)
+	return tokens.AccessToken, expiry
 }
 
 func main() {
@@ -140,7 +123,6 @@ func main() {
 
 	deviceID := flag.String("deviceID", "", "Device ID (required)")
 	serverURI := flag.String("serverURI", "tcp://172.16.0.13:1883", "URI of MQTT server")
-	reconnectTime := flag.Int("reconnectTime", 10, "Default time (in seconds) used to reconnect client")
 	debug := flag.Bool("debug", false, "Switch on debug output")
 	flag.Parse()
 
@@ -162,8 +144,8 @@ func main() {
 		log.Fatal(result.Error.String())
 	}
 
-	c := make(chan time.Time, 1)
-	defer close(c)
+	reconnectIn := make(chan int64, 1)
+	defer close(reconnectIn)
 
 	// set MQTT client options
 	opts := mqtt.NewClientOptions()
@@ -191,14 +173,9 @@ func main() {
 			}
 			time.Sleep(500 * time.Millisecond)
 		}
-		accessToken, expiry := parseTokens(tokens)
-		if expiry.IsZero() {
-			expiry = time.Now().Add(time.Duration(*reconnectTime) * time.Second)
-			fmt.Println("Using DEFAULT expiry time", expiry)
-		} else {
-			fmt.Println("Using TOKEN expiry time", expiry)
-		}
-		c <- expiry
+		accessToken, nSeconds := mustParseTokens(tokens)
+		// send the expiry time to the reconnect channel
+		reconnectIn <- nSeconds
 		return "unused", accessToken
 	})
 	client := mqttMustConnect(opts)
@@ -211,8 +188,9 @@ func main() {
 			select {
 			case <-ctx.Done():
 				return
-			case expire := <-c:
-				timer = time.AfterFunc(expire.Sub(time.Now()), func() {
+			case nSeconds := <-reconnectIn:
+				fmt.Printf("Reconnect MQTT client in %d seconds\n", nSeconds)
+				timer = time.AfterFunc(time.Duration(nSeconds)*time.Second, func() {
 					mux.Lock()
 					defer mux.Unlock()
 					if client.IsConnected() {
