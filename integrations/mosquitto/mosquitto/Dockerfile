@@ -31,8 +31,14 @@ RUN go build -o plugin/gomozzie.so -buildmode=c-shared github.com/limaechocharli
 # copy across configuration
 COPY config/mosquitto.conf config/
 
+# add a "human" user to the mosquitto password file
+RUN touch config/passwd && mosquitto_passwd -b config/passwd human password
+
 # add user for mosquitto
 RUN	useradd mosquitto && chown -R mosquitto: /mosquitto
+
+# add the mosquitto library to the path for mosquitto_pub/sub
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
 VOLUME ["/mosquitto/log"]
 CMD ["mosquitto", "-c", "/mosquitto/config/mosquitto.conf"]

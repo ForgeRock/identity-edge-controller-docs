@@ -123,11 +123,17 @@ func main() {
 
 	deviceID := flag.String("deviceID", "", "Device ID (required)")
 	serverURI := flag.String("serverURI", "tcp://172.16.0.13:1883", "URI of MQTT server")
+	topic := flag.String("topic", "", "MQTT topic (default \"/devices/{deviceID}\")")
+	subscribe := flag.Bool("subscribe", false, "client subscribes to topic instead of publishing")
 	debug := flag.Bool("debug", false, "Switch on debug output")
 	flag.Parse()
 
 	if *deviceID == "" {
 		log.Fatal("Please provide a Device ID")
+	}
+
+	if *topic == "" {
+		*topic = "/devices/" + *deviceID
 	}
 
 	if *debug {
@@ -151,6 +157,7 @@ func main() {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(*serverURI)
 	opts.SetClientID(*deviceID)
+	opts.SetCleanSession(false) // set clean session to false so subscriptions are retained after reconnect
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		fmt.Printf("Published: topic= %s; message= %s\n", message.Topic(), message.Payload())
 	})
@@ -178,6 +185,7 @@ func main() {
 		reconnectIn <- nSeconds
 		return "unused", accessToken
 	})
+
 	client := mqttMustConnect(opts)
 
 	// create a goroutine that reconnects the mqtt client at expiry time
@@ -202,42 +210,50 @@ func main() {
 		}
 	}()
 
-	// create a goroutine to regularly publish telemetry events
-	go func() {
-		ticker := time.NewTicker(2 * time.Second)
-		defer ticker.Stop()
-		data := sensorData{
-			NoiseLevel:  10.0, // leaf rustling
-			Illuminance: 400,  // sunrise
+	if *subscribe {
+		fmt.Println("Subscribing to ", *topic)
+		if token := client.Subscribe(*topic, qos, nil); token.Wait() && token.Error() != nil {
+			log.Fatal(token.Error())
 		}
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case c := <-ticker.C:
-				data.fluctuate(c.Unix())
-				dataBytes, err := json.Marshal(data)
-				if err != nil {
-					continue
-				}
-				mux.Lock()
-				fmt.Println("Publishing sensor data:", data)
-				if token := client.Publish(deviceTopic(*deviceID, "data"), qos, false, dataBytes); token.Wait() && token.Error() != nil {
-					log.Println(token.Error())
-				}
-				mux.Unlock()
+	} else {
+		fmt.Println("Publishing to ", *topic)
+		// create a goroutine to regularly publish telemetry events
+		go func() {
+			ticker := time.NewTicker(2 * time.Second)
+			defer ticker.Stop()
+			data := sensorData{
+				NoiseLevel:  10.0, // leaf rustling
+				Illuminance: 400,  // sunrise
 			}
-		}
-	}()
-
-	// listen for commands
-	if token := client.Subscribe(deviceTopic(*deviceID, "commands"), qos, nil); token.Wait() && token.Error() != nil {
-		log.Fatal(token.Error())
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case c := <-ticker.C:
+					data.fluctuate(c.Unix())
+					dataBytes, err := json.Marshal(data)
+					if err != nil {
+						continue
+					}
+					mux.Lock()
+					fmt.Println("Publishing sensor data:", data)
+					if token := client.Publish(*topic, qos, false, dataBytes); token.Wait() && token.Error() != nil {
+						log.Println(token.Error())
+					}
+					mux.Unlock()
+				}
+			}
+		}()
 	}
 
-	fmt.Println("Publishing and listening. Enter any key to exit")
+	fmt.Println("Enter any key to exit")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		break
+	}
+
+	if *subscribe {
+		// unsubscribe so that subscriptions don't leak between program runs
+		client.Unsubscribe(*topic).Wait()
 	}
 }
