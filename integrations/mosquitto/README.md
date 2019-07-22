@@ -1,6 +1,8 @@
 ## Mosquitto Integration
 ### Introduction
 
+TBD
+
 ### Prerequisites
 
 - ForgeRock BackStage account with access to AM, DS and the IEC
@@ -9,12 +11,12 @@
 
 ### Build and run the mosquitto container
 
+Build a container that has the Mosquitto server and the AM Mosquitto plugin (gomozzie) installed with all the relevant
+configuration for Mosquitto to communicate with the training environment:
+
 	cd mosquitto 	
 	docker build -t mosquitto .
 	cd -
-
-This will build a container that has Mosquitto and the AM Mosquitto plugin (gomozzie) installed with all the relevant
-configuration for Mosquitto to communicate with the training environment.
 
 Run the `mosquitto` container in the background:
 
@@ -30,7 +32,7 @@ Confirm that the server has started correctly:
 	
 	1563543348: mosquitto version 1.5.8 starting
 
-### Modify the OAuth 2.0 clients
+### Modify the OAuth2 Client Group
 
 Authentication and authorisation within the Mosquitto plugin is controlled by OAuth 2.0 access token scopes.
 To ensure that all devices get this authority by default, modify the `DeviceOAuth2Group` OAuth 2.0 group in AM. 
@@ -44,7 +46,7 @@ in the AM Admin Console.
 ### Modify the OAuth2 Service
 
 In order to make a running example client more responsive to OAuth2 client changes, it is recommended that the lifetime
-of an access token is decreased.
+of an access token is decreased for this example.
 
 1. Open the OAuth2 [provider](http://am.iec.com:8080/openam/XUI/#realms/%2Fedge/services/edit/oauth-oidc) 
 in the AM Admin Console.
@@ -88,7 +90,7 @@ If the token is valid and has the correct scopes, the data is cached and the con
 1. in publish mode, the client will publish dummy telemetry every two seconds to the topic.
 1. or in subscribe mode, the client will subscribe to the topic and print out any received messages.
 1. the client runs a process that reconnects the MQTT client when the access token expires.
-Triggering a call out to the IEC to provide credentials.
+Triggering a call out to the IEC to provide new credentials.
 
 ### Communicate with the example client
 

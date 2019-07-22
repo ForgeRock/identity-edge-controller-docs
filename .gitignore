@@ -14,3 +14,9 @@ integrations/awsiot/examples/aws_custom_auth/src/github.com
 integrations/gcpiot/examples/dist
 integrations/gcpiot/examples/resources/*
 !integrations/gcpiot/examples/resources/.keep
+
+# Mosquitto integration
+integrations/mosquitto/mosquitto/local/*
+!integrations/mosquitto/mosquitto/local/.keep
+integrations/mosquitto/mosquitto/log/*
+!integrations/mosquitto/mosquitto/log/.keep
