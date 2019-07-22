@@ -1,7 +1,56 @@
 ## Mosquitto Integration
 ### Introduction
 
-TBD
+[Mosquitto](https://mosquitto.org/) is an open source MQTT broker that can run on the edge or in the cloud.
+In addition to its internal authorisation and authentication mechanism,
+Mosquitto can be configured to call out to an external library.
+This integration uses the [Gomozzie Plugin](https://github.com/LimaEchoCharlie/gomozzie) that enables Mosquitto to
+validate OAuth2 access tokens issued by AM.
+![IEC Mosquitto Integration](../../docs/images/IEC-Mosquitto-Integration.svg "IEC Mosquitto Integration")
+
+Components in the example are:
+- Client application
+    - registers a device using the IEC SDK
+    - obtains an OAuth2 access token via the IEC SDK
+    - connects to the Mosquitto Broker using an OAuth2 access token as a password
+    - publishes and subscribes to topics via the Mosquitto Broker
+- IEC Service
+    - facilitates registration and get token requests for the client application
+- AM
+    - registers edge nodes
+    - introspects OAuth2 access tokens for the Gomozzie Plugin
+- Gomozzie Plugin
+    - performs authentication and authorisation for the Mosquitto Broker
+
+#### Gomozzie Plugin
+
+Gomozzie acts as an OAuth2 token validator for the Mosquitto Broker.
+A valid token authenticates a device and the scopes of the token are used to authorise a device to publish, subscribe and read.
+The following scopes are used by Gomozzie:
+
+- `mqtt:write:{filterA}` will authorise publications to topics that match filterA.
+For example, `mqtt:write:#` allows publications to all topics.
+- `mqtt:read:{filterB}` will authorise subscriptions to and reads from topics that match filterB.
+For example, `mqtt:read:#` allows subscriptions to all topics.
+
+See the MQTT [specification](http://docs.oasis-open.org/mqtt/mqtt/v5.0/cs02/mqtt-v5.0-cs02.html#_Toc514345513) for more
+information about topic filters.
+
+Mosquitto has a mechanism to pass configuration from its own config file to a plugin. Gomozzie requires:
+
+- the id and secret of an OAuth2 client that has been created in AM within the same realm as the devices.
+- the OAuth2 introspection endpoint of the device realm
+
+See the `auth_opt_openam_` values in the Mosquitto [configuration](./mosquitto/config/mosquitto.conf) for the settings
+used for this integration example.
+
+#### Token expiry
+
+The OAuth2 token used by the device will eventually expire and the device will become unauthorised.
+There is no method to communicate this expiry to the device from the Auth Plugin and so the MQTT client application must
+be responsible for managing this.
+For example, in this client [application](../../examples/go/src/forgerock.org/cmd/device-mqtt), the
+expiry time of the token is used to trigger a reconnection of the MQTT client.
 
 ### Prerequisites
 
