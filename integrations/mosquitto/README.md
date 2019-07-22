@@ -5,7 +5,7 @@ TBD
 
 ### Prerequisites
 
-- ForgeRock BackStage account with access to AM, DS and the IEC
+- ForgeRock BackStage account with access to AM and the IEC
 - [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - ForgeRock IEC Training Environment installed as described in [training](../../training)
 
