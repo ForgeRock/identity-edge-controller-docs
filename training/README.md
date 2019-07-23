@@ -26,6 +26,10 @@ Download the AM and IEC resources,
 * to `sdk/resources`
   * [IEC SDK](https://backstage.forgerock.com/downloads/get/familyId:edge/productId:iec/subProductId:sdk/minorVersion:6.5/version:6.5.0/architecture:x86-64/distribution:tar)
 
+Before you build the docker environment you must add the AM host name to your system's `/etc/hosts` file, for example run:
+
+    echo 127.0.0.1 am.iec.com >> /etc/hosts
+
 ### Build and Run
 
 We use `docker-compose` to start containers for AM, IEC Service and IEC SDK on the same network.

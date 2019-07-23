@@ -193,7 +193,7 @@
     "persistentsearch" : {
       "sun-idrepo-ldapv3-config-psearch-scope" : "SCOPE_SUB",
       "sun-idrepo-ldapv3-config-psearch-filter" : "(&(!(objectclass=frCoreToken))(!(ou:dn:=services))(!(ou:dn:=tokens)))",
-      "sun-idrepo-ldapv3-config-psearchbase" : "dc=openam,dc=forgerock,dc=org"
+      "sun-idrepo-ldapv3-config-psearchbase" : "ou=OrganizationConfig,ou=1.0,ou=AgentService,ou=services,o=edge,ou=services,dc=openam,dc=forgerock,dc=org"
     },
     "errorhandling" : {
       "com.iplanet.am.ldap.connection.delay.between.retries" : 1000
