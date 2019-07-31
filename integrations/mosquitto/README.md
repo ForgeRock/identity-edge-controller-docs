@@ -102,6 +102,24 @@ in the AM Admin Console.
 1. Change *Access Token Lifetime (seconds)* to `20`.
 1. Click *Save Changes*.
  
+### Register an OAuth2 Client
+
+Register an OAuth 2.0 client with the AM OAuth 2.0 authorisation service that is allowed to introspect access tokens
+issued to other clients in the `edge` realm:
+
+1. In the AM console, navigate to the OAuth2 client applications
+[view](http://am.iec.com:8080/openam/XUI/#realms/%2Fedge/applications-oauth2) for the `edge` realm.
+Ensure the *Clients* tab is selected.
+1. Select *Add Client*
+1. Enter the following values:
+	* Client ID: `mqtt_oidc_client`
+	* Client Secret: `password`
+	* Scope(s): `am-introspect-all-tokens`
+1. Select *Create*
+
+Refer to the AM documentation for more information about
+[registering](https://backstage.forgerock.com/docs/am/6.5/oauth2-guide/#register-oauth2-client) and
+[configuring](https://backstage.forgerock.com/docs/am/6.5/oauth2-guide/#configure-oauth2-client) OAuth2 Clients.
 
 ### Build and run the example client
 
