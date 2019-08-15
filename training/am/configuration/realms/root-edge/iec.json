@@ -20,7 +20,8 @@
       "GET_TOKENS" : "GetDeviceTokens",
       "GET_USER_CODE" : "GetUserCode",
       "GET_CLIENT_CONFIG" : "GetClientConfig",
-      "GET_CONFIG" : "GetDeviceConfig"
+      "GET_CONFIG" : "GetDeviceConfig",
+      "INTROSPECT_ACCESS_TOKEN": "IntrospectAccessToken"
     },
     "regIssuerName" : "edge-device",
     "loadDefaultRegScripts" : true,
