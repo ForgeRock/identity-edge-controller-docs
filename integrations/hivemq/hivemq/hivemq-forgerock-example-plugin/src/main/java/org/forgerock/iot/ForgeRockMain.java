@@ -29,8 +29,15 @@ import com.hivemq.extension.sdk.api.services.auth.SecurityRegistry;
 import com.hivemq.extension.sdk.api.services.auth.provider.AuthorizerProvider;
 import org.forgerock.iot.auth.TokenAuthorizer;
 import org.forgerock.iot.auth.TokenAuthenticator;
+import org.forgerock.iot.config.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * This is the main class of the extension,
@@ -43,20 +50,30 @@ import org.slf4j.LoggerFactory;
 public class ForgeRockMain implements ExtensionMain {
 
     private static final @NotNull Logger log = LoggerFactory.getLogger(ForgeRockMain.class);
+    private static final String PROPERTIES_FILE_NAME = "forgerockExample.properties";
 
     @Override
     public void extensionStart(final @NotNull ExtensionStartInput extensionStartInput, final @NotNull ExtensionStartOutput extensionStartOutput) {
 
         try {
+            //get properties file
+            final File propertiesFile = new File(
+                    extensionStartInput.getExtensionInformation().getExtensionHomeFolder(),
+                    PROPERTIES_FILE_NAME);
+
+
+            //load properties into configuration and check that the required properties have been set
+            final Configuration configuration = new Configuration();
+            configuration.load(propertiesFile).check();
 
             //access security registry
             final SecurityRegistry securityRegistry = Services.securityRegistry();
 
             //set authentication auth
-            securityRegistry.setAuthenticatorProvider(new AuthNProvider(new TokenAuthenticator()));
+            securityRegistry.setAuthenticatorProvider(new AuthNProvider(new TokenAuthenticator(configuration)));
 
             //set authorisation auth
-            securityRegistry.setAuthorizerProvider(new AuthZProvider(new TokenAuthorizer()));
+            securityRegistry.setAuthorizerProvider(new AuthZProvider(new TokenAuthorizer(configuration)));
 
             //set client listener
             Services.eventRegistry().setClientLifecycleEventListener(input -> new HelloWorldListener());

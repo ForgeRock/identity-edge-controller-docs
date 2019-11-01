@@ -20,6 +20,7 @@ import com.hivemq.extension.sdk.api.async.Async;
 import com.hivemq.extension.sdk.api.async.TimeoutFallback;
 import com.hivemq.extension.sdk.api.services.ManagedExtensionExecutorService;
 import com.hivemq.extension.sdk.api.services.Services;
+import org.forgerock.iot.config.Configuration;
 import org.forgerock.iot.oauth2.OAuth2Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,10 @@ public class TokenAuthenticator implements SimpleAuthenticator {
     public static final String TOKEN_KEY = "token";
     private static final Logger log = LoggerFactory.getLogger(TokenAuthenticator.class);
 
-    public TokenAuthenticator() {
+    private final Configuration configuration;
+
+    public TokenAuthenticator(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
@@ -76,7 +80,7 @@ public class TokenAuthenticator implements SimpleAuthenticator {
         final Async<SimpleAuthOutput> asyncOutput = output.async(Duration.of(10, SECONDS), TimeoutFallback.FAILURE);
 
         //submit external task to managed extension executor service
-        extensionExecutorService.submit( new OAuth2Authenticator(asyncOutput, token) );
+        extensionExecutorService.submit( new OAuth2Authenticator(configuration, asyncOutput, token) );
     }
 
     /**

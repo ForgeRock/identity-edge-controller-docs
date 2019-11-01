@@ -20,14 +20,15 @@ import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
 import com.hivemq.extension.sdk.api.auth.parameter.SimpleAuthOutput;
 import com.hivemq.extension.sdk.api.packets.connect.ConnackReasonCode;
+import org.forgerock.iot.config.Configuration;
 
 /**
  * Runnable OAuth 2 Authenticator
  */
 public class OAuth2Authenticator extends OAuth2Validator<SimpleAuthOutput> {
 
-    public OAuth2Authenticator(@NotNull Async<SimpleAuthOutput> async, @NotNull String token){
-        super(async, token);
+    public OAuth2Authenticator(@NotNull Configuration configuration, @NotNull Async<SimpleAuthOutput> async, @NotNull String token){
+        super(configuration, async, token);
     }
 
     @Override

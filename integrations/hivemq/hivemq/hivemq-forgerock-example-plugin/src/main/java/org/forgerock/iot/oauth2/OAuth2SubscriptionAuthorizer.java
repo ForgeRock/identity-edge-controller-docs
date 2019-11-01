@@ -20,14 +20,15 @@ import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
 import com.hivemq.extension.sdk.api.auth.parameter.SubscriptionAuthorizerOutput;
 import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
+import org.forgerock.iot.config.Configuration;
 
 /**
  * Runnable OAuth 2 Subscribe Authorizer
  */
 public class OAuth2SubscriptionAuthorizer extends OAuth2Validator<SubscriptionAuthorizerOutput> {
 
-    public OAuth2SubscriptionAuthorizer(@NotNull Async<SubscriptionAuthorizerOutput> async, @NotNull String token){
-        super(async, token);
+    public OAuth2SubscriptionAuthorizer(@NotNull Configuration configuration, @NotNull Async<SubscriptionAuthorizerOutput> async, @NotNull String token){
+        super(configuration, async, token);
     }
 
     @Override

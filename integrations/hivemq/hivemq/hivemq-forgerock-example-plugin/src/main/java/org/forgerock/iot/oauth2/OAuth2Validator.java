@@ -19,6 +19,7 @@ package org.forgerock.iot.oauth2;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
 import org.forgerock.iot.auth.TokenAuthenticator;
+import org.forgerock.iot.config.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +29,13 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class OAuth2Validator<T> implements Runnable {
 
+    final Configuration configuration;
     final private String token;
-    final protected Async<T> async;
+    final Async<T> async;
     private static final Logger log = LoggerFactory.getLogger(TokenAuthenticator.class);
 
-    OAuth2Validator(@NotNull Async<T> async, @NotNull String token){
+    OAuth2Validator(@NotNull Configuration configuration, @NotNull Async<T> async, @NotNull String token){
+        this.configuration = configuration;
         this.token = token;
         this.async = async;
     }

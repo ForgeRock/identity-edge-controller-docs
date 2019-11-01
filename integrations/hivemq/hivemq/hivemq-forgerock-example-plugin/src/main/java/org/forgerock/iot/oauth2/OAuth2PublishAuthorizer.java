@@ -20,14 +20,15 @@ import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
 import com.hivemq.extension.sdk.api.auth.parameter.PublishAuthorizerOutput;
 import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
+import org.forgerock.iot.config.Configuration;
 
 /**
  * Runnable OAuth 2 Publish Authorizer
  */
 public class OAuth2PublishAuthorizer extends OAuth2Validator<PublishAuthorizerOutput> {
 
-    public OAuth2PublishAuthorizer(@NotNull Async<PublishAuthorizerOutput> async, @NotNull String token){
-        super(async, token);
+    public OAuth2PublishAuthorizer(@NotNull Configuration configuration, @NotNull Async<PublishAuthorizerOutput> async, @NotNull String token){
+        super(configuration, async, token);
     }
 
     @Override

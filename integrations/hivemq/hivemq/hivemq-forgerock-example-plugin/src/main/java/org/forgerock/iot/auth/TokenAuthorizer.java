@@ -28,6 +28,7 @@ import com.hivemq.extension.sdk.api.auth.parameter.SubscriptionAuthorizerOutput;
 import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
 import com.hivemq.extension.sdk.api.services.ManagedExtensionExecutorService;
 import com.hivemq.extension.sdk.api.services.Services;
+import org.forgerock.iot.config.Configuration;
 import org.forgerock.iot.oauth2.OAuth2PublishAuthorizer;
 import org.forgerock.iot.oauth2.OAuth2SubscriptionAuthorizer;
 import org.slf4j.Logger;
@@ -46,6 +47,11 @@ import static org.forgerock.iot.auth.TokenAuthenticator.TOKEN_KEY;
 public class TokenAuthorizer implements SubscriptionAuthorizer, PublishAuthorizer {
 
     private static final Logger log = LoggerFactory.getLogger(TokenAuthorizer.class);
+
+    final Configuration configuration;
+    public TokenAuthorizer(Configuration configuration){
+        this.configuration = configuration;
+    }
 
     @Override
     public void authorizeSubscribe(@NotNull final SubscriptionAuthorizerInput input, @NotNull final SubscriptionAuthorizerOutput output) {
@@ -71,7 +77,7 @@ public class TokenAuthorizer implements SubscriptionAuthorizer, PublishAuthorize
         final Async<SubscriptionAuthorizerOutput> asyncOutput = output.async(Duration.of(10, SECONDS), TimeoutFallback.FAILURE);
 
         //submit external task to managed extension executor service
-        extensionExecutorService.submit( new OAuth2SubscriptionAuthorizer(asyncOutput, token.get()) );
+        extensionExecutorService.submit( new OAuth2SubscriptionAuthorizer(configuration, asyncOutput, token.get()) );
     }
 
     @Override
@@ -98,6 +104,6 @@ public class TokenAuthorizer implements SubscriptionAuthorizer, PublishAuthorize
         final Async<PublishAuthorizerOutput> asyncOutput = output.async(Duration.of(10, SECONDS), TimeoutFallback.FAILURE);
 
         //submit external task to managed extension executor service
-        extensionExecutorService.submit( new OAuth2PublishAuthorizer(asyncOutput, token.get()) );
+        extensionExecutorService.submit( new OAuth2PublishAuthorizer(configuration, asyncOutput, token.get()) );
     }
 }
