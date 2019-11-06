@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "openAmOAuth2Endpoint": "http://am.iec.com:8080/openam/oauth2/realms/root/realms/edge/introspect",
+    "oauth2ClientId": "mqtt_oidc_client"
+  },
+  "introspectionConfig": {
+    "accessTokenResolver": {
+      "type": "CacheAccessTokenResolver",
+      "config": {
+        "maximumTimeToCache": "2 minutes",
+        "delegate": {
+          "type": "TokenIntrospectionAccessTokenResolver",
+          "config": {
+            "endpoint": "&{openAmOAuth2Endpoint}/introspect",
+            "providerHandler": {
+              "type": "Chain",
+              "config": {
+                "filters": [
+                  {
+                    "type": "HttpBasicAuthenticationClientFilter",
+                    "config": {
+                      "urlEncodeCredentials": true,
+                      "username": "${oauth2ClientId}",
+                      "passwordSecretId": "oauth2.client.secret",
+                      "secretsProvider": {
+                        "type": "FileSystemSecretStore",
+                        "config": {
+                          "directory": "${environment.configDirectory}/secrets",
+                          "format": "BASE64"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "handler": "ForgeRockClientHandler"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
