@@ -69,7 +69,7 @@ public abstract class OAuth2Validator<T> implements Runnable {
             JSONObject obj = new JSONObject(response);
             active = obj.get("active");
         } catch (JSONException e) {
-            log.error(e.getStackTrace().toString());
+            log.error("Failed to parse introspection data", e);
             return false;
         }
         if(!(active instanceof Boolean)){
