@@ -85,9 +85,8 @@ public abstract class OAuth2Validator<T> implements Runnable {
      * @return
      */
     private UrlEncodedFormEntity introspectionFormEntity() {
-        final String ACCESS_TOKEN_KEY = "token";
         List<NameValuePair> form = new ArrayList<>();
-        form.add(new BasicNameValuePair(ACCESS_TOKEN_KEY, token));
+        form.add(new BasicNameValuePair("token", token));
         return new UrlEncodedFormEntity(form, Consts.UTF_8);
     }
 
