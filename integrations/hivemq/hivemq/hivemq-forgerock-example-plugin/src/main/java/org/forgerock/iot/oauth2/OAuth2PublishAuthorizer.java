@@ -33,7 +33,6 @@ public class OAuth2PublishAuthorizer extends OAuth2Validator<PublishAuthorizerOu
 
     @Override
     void enforce(Boolean result) {
-        result = false;
         final PublishAuthorizerOutput output = super.async.getOutput();
         if( result ) {
             output.authorizeSuccessfully();
