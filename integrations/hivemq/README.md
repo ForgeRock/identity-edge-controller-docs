@@ -77,29 +77,32 @@ The default login is the username `admin` with the password `hivemq`.
 
 ### Build and run the example device mqtt client
 
-Copy the Go client examples into the `sdk` container:
+Copy the C client examples into the `sdk` container:
 
-	docker cp ../../examples/go sdk:/root/forgerock/go-examples
+	docker cp ../../examples/c sdk:/root/forgerock/c-examples
 
 Enter the `sdk` container:
 
     docker exec -it sdk bash
 
+Install the Mosquitto Client C library:
+
+    apt-get install --yes libmosquitto-dev
+
 Build the client application:
 
-    cd ~/forgerock/go-examples
-    ./build-mqtt-device.sh
+    cd ~/forgerock/c-examples
+    ./build.sh device_mqtt_pub
 
-Run the client application in publisher mode:
+ Add the IEC SDK library directory to the linker path:
 
-    ./dist/device-mqtt --deviceID wildcat
+    export LD_LIBRARY_PATH=~/forgerock/lib:${LD_LIBRARY_PATH}
+    export DYLD_LIBRARY_PATH=~/forgerock/lib:${DYLD_LIBRARY_PATH}
 
-Use the subscriber flag to run in subscriber mode:
+Run the client application:
 
-    ./dist/device-mqtt --subscribe --deviceID wildcat
-
-In both cases a topic name (or topic filter for the subscribe mode) can be supplied via the topic flag.
-The default topic is `/devices/{deviceID}`.
+    cd ~/forgerock/c-examples/dist/device_mqtt_pub/
+    ./device_mqtt_pub
 
 This example will:
 1. register a device (with deviceID) with AM via the IEC.
@@ -109,21 +112,18 @@ This example will:
     1. The extension will call out to the Token Validation Microservice with the access token.
     1. The Token Validation Microservice returns the introspection of the access token.
     1. If the token is valid and has the correct scopes, then the connection is authorised.
-1. in publish mode, the client will publish dummy telemetry every two seconds to the topic.
-1. or in subscribe mode, the client will subscribe to the topic and print out any received messages.
-1. the client runs a process that reconnects the MQTT client when the access token expires.
-Triggering a call out to the IEC to provide new credentials.
+1. the client will publish a new count every second to the `/device/data`.
 
-### Communicate with the example device in subscriber mode
+### Receive the data published by the example device
 
-It is possible to send a message to the example device over MQTT from the command line on the host machine.
+It is possible to receive the messages sent by the example device over MQTT from the command line on the host machine.
 The following assumes that the host machine has the following:
 
 * curl
 * jq
 * mosquitto client (any MQTT client can be used)
 
-An OAuth 2.0 access token is required to connect\publish to the MQTT server, so create an OAuth 2.0 client to
+An OAuth 2.0 access token is required to connect\subscribe to the MQTT server, so create an OAuth 2.0 client to
 request access tokens:
 
 1. In the AM console, navigate to the OAuth2 client applications
@@ -148,8 +148,7 @@ Request a token:
         --data scope=mqtt \
         --silent | jq -r .access_token)
 
-Send a message to the subscribed device:
+Subscribe to the topic used by the device:
 
-    mosquitto_pub -t /devices/wildcat \
-        -u human -P ${human_token} \
-        -m "hello from the human"
+    mosquitto_sub -t /device/data \
+        -u human -P ${human_token}
