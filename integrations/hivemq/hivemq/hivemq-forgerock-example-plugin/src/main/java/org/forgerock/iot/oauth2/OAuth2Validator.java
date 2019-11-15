@@ -37,7 +37,11 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -49,7 +53,8 @@ public abstract class OAuth2Validator<T> implements Runnable {
     final Configuration configuration;
     final private String token;
     final Async<T> async;
-    private static final Logger log = LoggerFactory.getLogger(TokenAuthenticator.class);
+    protected static final Logger log = LoggerFactory.getLogger(TokenAuthenticator.class);
+    static protected final Pattern pattern = Pattern.compile("(?<=mqtt:)[/\\w]+");
 
     OAuth2Validator(@NotNull Configuration configuration, @NotNull Async<T> async, @NotNull String token){
         this.configuration = configuration;
@@ -58,26 +63,48 @@ public abstract class OAuth2Validator<T> implements Runnable {
     }
 
     /**
-     * Returns true if the given response contains an Intropsection JSON string with `active` set to true
+     * Returns true if the introspection indicates that the token is active
      * @param response
      * @return
      */
-    private static boolean isIntrospectionActive(String response) {
-        log.info(response);
-        Object active;
+    protected static boolean isTokenActive(String response) {
         try {
             JSONObject obj = new JSONObject(response);
-            active = obj.get("active");
+            Object active = obj.get("active");
+            if(!(active instanceof Boolean)){
+                log.error("Introspection doesn't contain a Boolean \"active\"");
+                return false;
+            }
+            log.info("Introspection has active value of " + active);
+            return (Boolean) active;
         } catch (JSONException e) {
             log.error("Failed to parse introspection data", e);
             return false;
         }
-        if(!(active instanceof Boolean)){
-            log.error("Introspection doesn't contain a Boolean \"active\"");
-            return false;
+    }
+
+    /**
+     * Return the MQTT specific scope from the token, if any
+     * @param response
+     * @return
+     */
+    protected static Optional<String> getMQTTScope(String response) {
+        try {
+            JSONObject obj = new JSONObject(response);
+            Object scope = obj.get("scope");
+            if(!(scope instanceof String)){
+                log.error("Introspection doesn't contain a String \"scope\"");
+                return Optional.empty();
+            }
+            Matcher m = pattern.matcher((String)scope);
+            if( !m.find() ){
+                return Optional.empty();
+            }
+            return Optional.of(m.group());
+        } catch (JSONException e) {
+            log.error("Failed to parse introspection data", e);
+            return Optional.empty();
         }
-        log.info("Introspection has active value of " + active);
-        return (Boolean)active;
     }
 
     /**
@@ -92,9 +119,7 @@ public abstract class OAuth2Validator<T> implements Runnable {
 
     @Override
     public void run() {
-        log.info("Running oauth 2 validator");
-        boolean result = false;
-
+        Optional<String> responseBody = Optional.empty();
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(configuration.introspectEndpoint());
         httpPost.setEntity(this.introspectionFormEntity());
@@ -103,8 +128,7 @@ public abstract class OAuth2Validator<T> implements Runnable {
             if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK){
                 log.error(response.getStatusLine().toString());
             } else {
-                String responseBody = EntityUtils.toString(response.getEntity());
-                result = isIntrospectionActive(responseBody);
+                responseBody = Optional.of(EntityUtils.toString(response.getEntity()));
             }
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -116,13 +140,17 @@ public abstract class OAuth2Validator<T> implements Runnable {
             }
         }
 
-        // tell HiveMQ that auth was successful\failed
-        enforce(result);
+        // process the response and tell HiveMQ that auth was successful\failed
+        processResponse(responseBody);
 
         //resume output to tell HiveMQ auth is complete
         async.resume();
     }
 
-    abstract void enforce(Boolean result);
+    /**
+     * Process the introspection response, authenticating or authorising depending on the context
+     * @param response
+     */
+    abstract void processResponse(Optional<String> response);
 }
 

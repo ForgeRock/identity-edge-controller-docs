@@ -8,6 +8,16 @@ IN DEVELOPMENT
 - [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - ForgeRock IEC Training Environment installed as described in [training](../../training)
 
+### Modify the OAuth2 Client Group
+
+Authorisation within the HiveMQ extension is controlled by OAuth 2.0 access token scopes.
+To ensure that all devices get this authority by default, modify the `DeviceOAuth2Group` OAuth 2.0 group in AM.
+
+1. Open the `DeviceOAuth2Group` [editor](http://am.iec.com:8080/openam/XUI/#realms/%2Fedge/applications-oauth2/groups/edit/DeviceOAuth2Group)
+in the AM Admin Console.
+1. Add `mqtt:device/data` to *Scope(s)* and *Default Scope(s)*.
+1. Click *Save Changes*.
+
 ### Register an OAuth2 Client
 
 Register an OAuth 2.0 client with the AM OAuth 2.0 authorisation service that is allowed to introspect access tokens
@@ -112,7 +122,7 @@ This example will:
     1. The extension will call out to the Token Validation Microservice with the access token.
     1. The Token Validation Microservice returns the introspection of the access token.
     1. If the token is valid and has the correct scopes, then the connection is authorised.
-1. the client will publish a new count every second to the `/device/data`.
+1. the client will publish a new count every second to the `device/data`.
 
 ### Receive the data published by the example device
 
@@ -133,7 +143,7 @@ Ensure the *Clients* tab is selected.
 1. Enter the following values:
     * Client ID: `human_client`
     * Client secret: `password`
-    * Scope(s): `mqtt`
+    * Scope(s): `mqtt:device/data`
 1. Select *Create*
 1. On the Advanced tab, select the following option:
     * Grant Types: `Client Credentials`
@@ -145,10 +155,10 @@ Request a token:
         --url http://am.iec.com:8080/openam/oauth2/realms/root/realms/edge/introspect/access_token \
         --user human_client:password \
         --data grant_type=client_credentials  \
-        --data scope=mqtt \
+        --data scope=mqtt:device/data \
         --silent | jq -r .access_token)
 
 Subscribe to the topic used by the device:
 
-    mosquitto_sub -t /device/data \
+    mosquitto_sub -t device/data \
         -u human -P ${human_token}

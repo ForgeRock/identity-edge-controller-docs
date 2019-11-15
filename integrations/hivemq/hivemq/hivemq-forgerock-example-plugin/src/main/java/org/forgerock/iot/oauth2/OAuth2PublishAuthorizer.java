@@ -22,6 +22,8 @@ import com.hivemq.extension.sdk.api.auth.parameter.PublishAuthorizerOutput;
 import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
 import org.forgerock.iot.config.Configuration;
 
+import java.util.Optional;
+
 /**
  * Runnable OAuth 2 Publish Authorizer
  */
@@ -32,10 +34,10 @@ public class OAuth2PublishAuthorizer extends OAuth2Validator<PublishAuthorizerOu
     }
 
     @Override
-    void enforce(Boolean result) {
+    void processResponse(Optional<String> response) {
         final PublishAuthorizerOutput output = super.async.getOutput();
-        if( result ) {
-            output.authorizeSuccessfully();
+        if(response.isPresent() && isTokenActive(response.get())) {
+            output.nextExtensionOrDefault();
         } else {
             output.disconnectClient(DisconnectReasonCode.NOT_AUTHORIZED);
         }

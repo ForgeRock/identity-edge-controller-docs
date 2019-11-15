@@ -19,8 +19,13 @@ package org.forgerock.iot.oauth2;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
 import com.hivemq.extension.sdk.api.auth.parameter.SimpleAuthOutput;
+import com.hivemq.extension.sdk.api.auth.parameter.TopicPermission;
+import com.hivemq.extension.sdk.api.packets.auth.ModifiableDefaultPermissions;
 import com.hivemq.extension.sdk.api.packets.connect.ConnackReasonCode;
+import com.hivemq.extension.sdk.api.services.builder.Builders;
 import org.forgerock.iot.config.Configuration;
+
+import java.util.Optional;
 
 /**
  * Runnable OAuth 2 Authenticator
@@ -32,12 +37,48 @@ public class OAuth2Authenticator extends OAuth2Validator<SimpleAuthOutput> {
     }
 
     @Override
-    void enforce(Boolean result) {
+    void processResponse(Optional<String> response) {
+        log.info("Processing response for authentication");
         final SimpleAuthOutput output = super.async.getOutput();
-        if( result ) {
+        boolean allow = false;
+        if(response.isPresent() && isTokenActive(response.get())) {
+            log.info("authentication: token is active");
+
+            Optional<String> mqttScope = getMQTTScope(response.get());
+            if(mqttScope.isPresent()) {
+                log.info("authentication: MQTT scope is %s", mqttScope.get());
+                //Get the default permissions from the output
+                final ModifiableDefaultPermissions defaultPermissions = output.getDefaultPermissions();
+
+                //create a permission for topic base on scope in token
+                final TopicPermission permission = Builders.topicPermission()
+                        .topicFilter(mqttScope.get())
+                        .qos(TopicPermission.Qos.ALL)
+                        .activity(TopicPermission.MqttActivity.ALL)
+                        .type(TopicPermission.PermissionType.ALLOW)
+                        .retain(TopicPermission.Retain.ALL)
+                        .build();
+
+                //add the permission to the default permissions for this client
+                defaultPermissions.add(permission);
+
+                allow = true;
+            } else {
+                log.info("authentication: no mqtt scope");
+            }
+
+        }
+        if( allow ){
+            log.info("authentication: successful");
             output.authenticateSuccessfully();
         } else {
             output.failAuthentication(ConnackReasonCode.NOT_AUTHORIZED, "OAuth2 verification failed");
         }
+    }
+
+    @Override
+    public void run(){
+        log.info("Running OAuth 2 Authenticator");
+        super.run();
     }
 }

@@ -33,7 +33,7 @@ const bool debug = false;
 #define MQTT_HOST "172.16.0.13"
 #define MQTT_PORT 1883
 #define MQTT_KEEPALIVE 100
-#define MQTT_TOPIC "/device/data"
+#define MQTT_TOPIC "device/data"
 #define MQTT_QOS 2
 #define MESSAGE_LENGTH 4
 
