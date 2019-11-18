@@ -18,6 +18,13 @@ in the AM Admin Console.
 1. Add `mqtt:device/data` to *Scope(s)* and *Default Scope(s)*.
 1. Click *Save Changes*.
 
+In order to make a running example client more responsive to OAuth2 client changes, it is recommended that the lifetime
+of an access token is decreased for this example. This can be done by further modifying the `DeviceOAuth2Group`
+OAuth 2.0 group.
+
+1. Change *Access Token Lifetime (seconds)* to `20`.
+1. Click *Save Changes*.
+
 ### Register an OAuth2 Client
 
 Register an OAuth 2.0 client with the AM OAuth 2.0 authorisation service that is allowed to introspect access tokens

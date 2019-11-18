@@ -44,39 +44,66 @@ typedef struct {
 } mqtt_client_data;
 
 /**
+ * get_access_token gets an OAuth 2.0 access token from the ForgeRock Platform
+ */
+int get_access_token(char** access_token){
+    int result;
+    char* tokens;
+    printf("Requesting access token for device (id: %s)... ", DEVICE_ID);
+    result = iec_device_tokens(DEVICE_ID, &tokens);
+    if (result < 0) {
+        char* error = iec_last_error();
+        printf("Access token request failed: %s\n", error);
+        free(error);
+        return result;
+    }
+    printf("Done\n");
+
+    if (iec_json_parse(tokens) != 0 || iec_json_get_string("access_token", access_token) != 0 ) {
+        char* error = iec_last_error();
+        printf("Failed to extract access token: %s\n", error);
+        free(error);
+        return -1;
+    }
+    printf("access token: %s\n", *access_token);
+    return result;
+}
+
+/**
  * mosq_log_cb is a logging callback function for the mosquitto client
  */
 void mosq_log_cb(__attribute__((unused)) struct mosquitto *mosq, __attribute__((unused)) void *userdata, int level, const char *str)
 {
-	const char* log_level;
-	switch(level){
-		case MOSQ_LOG_DEBUG:
-			log_level = "DEBUG";
-			break;
-		case MOSQ_LOG_INFO:
-			log_level = "INFO";
-			break;
-		case MOSQ_LOG_NOTICE:
-			log_level = "NOTICE";
-			break;
-		case MOSQ_LOG_WARNING:
-			log_level = "WARNING";
-			break;
-		case MOSQ_LOG_ERR:
-			log_level = "ERR";
-			break;
-	}
-	printf("MOSQ LOG %s: %s\n", log_level, str);
+    const char* log_level;
+    switch(level){
+        case MOSQ_LOG_DEBUG:
+            log_level = "DEBUG";
+            break;
+        case MOSQ_LOG_INFO:
+            log_level = "INFO";
+            break;
+        case MOSQ_LOG_NOTICE:
+            log_level = "NOTICE";
+            break;
+        case MOSQ_LOG_WARNING:
+            log_level = "WARNING";
+            break;
+        case MOSQ_LOG_ERR:
+            log_level = "ERR";
+            break;
+    }
+    printf("MOSQ LOG %s: %s\n", log_level, str);
 }
 
 /**
  * mosq_publish_cb defines a publish callback function
  * This is called when a message initiated with mosquitto_publish has been sent to the broker successfully
  */
-void mosq_publish_cb(__attribute__((unused)) struct mosquitto *mosq, void *userdata, __attribute__((unused)) int mid)
+void mosq_publish_cb(__attribute__((unused)) struct mosquitto *mosq, void *userdata, int mid)
 {
     mqtt_client_data *mdata = (mqtt_client_data*) userdata;
     mdata->pub_count++;
+    printf("Published (mid: %d)\n", mid);
 }
 
 /**
@@ -85,9 +112,29 @@ void mosq_publish_cb(__attribute__((unused)) struct mosquitto *mosq, void *userd
 void mosq_connect_cb(struct mosquitto *mosq, void *userdata, int result)
 {
     mqtt_client_data *data = (mqtt_client_data*) userdata;
-	if( debug ) printf("MOSQ CONNECT: %d\n", result);
-	data->received_connack = true;
-	data->connected = result == 0; 	// result code is 0 if connection was a success
+    if( debug ) printf("MOSQ CONNECT: %d\n", result);
+    data->received_connack = true;
+    data->connected = result == 0;     // result code is 0 if connection was a success
+}
+
+/**
+ * mosq_disconnect_cb is a disconnect callback for the mosquitto client
+ */
+void mosq_disconnect_cb(struct mosquitto *mosq, __attribute__((unused)) void *userdata, int result)
+{
+    char* access_token;
+    printf("Client has become disconnected from MQTT server: %d\n", result);
+    if( result != 0){
+        // disconnect initiated by the server, try to reconnect
+        result = get_access_token(&access_token);
+        if (result < 0) {
+            return;
+        }
+        /* use the access token as the password */
+        mosquitto_username_pw_set(mosq, "unused", access_token);
+        // disconnected by server, try to reconnect
+        mosquitto_reconnect_async(mosq);
+    }
 }
 
 /**
@@ -95,26 +142,25 @@ void mosq_connect_cb(struct mosquitto *mosq, void *userdata, int result)
  */
 int wait_for_connack(mqtt_client_data* data)
 {
-	printf( "Waiting for connection acknowledgment");
-	int loop = 0;
-	do {
-		sleep(1);
-		printf(".");
-		fflush(stdout);
-		if( loop ++ > 60 )
-		{
-			printf( " No ACK from server\n");
-			return 1;
-		}
-	}
-	while( !data->received_connack );
-	printf(" Received\n");
+    printf( "Waiting for connection acknowledgment");
+    int loop = 0;
+    do {
+        sleep(1);
+        printf(".");
+        fflush(stdout);
+        if( loop ++ > 60 )
+        {
+            printf( " No ACK from server\n");
+            return 1;
+        }
+    }
+    while( !data->received_connack );
+    printf(" Received\n");
 }
 
 int main()
 {
     int result;
-    char* tokens;
     char* access_token;
     struct mosquitto *mosq = NULL;
     mqtt_client_data mdata = {}; /* use mqtt_client_data to hold callback data. */
@@ -167,23 +213,10 @@ int main()
     }
     printf("Done\n");
 
-    printf("Requesting access token for device (id: %s)... ", DEVICE_ID);
-    result = iec_device_tokens(DEVICE_ID, &tokens);
+    result = get_access_token(&access_token);
     if (result < 0) {
-        char* error = iec_last_error();
-        printf("Access token request failed: %s\n", error);
-        free(error);
         return result;
     }
-    printf("Done\n");
-
-    if (iec_json_parse(tokens) != 0 || iec_json_get_string("access_token", &access_token) != 0 ) {
-        char* error = iec_last_error();
-        printf("Failed to extract access token: %s\n", error);
-        free(error);
-        return -1;
-    }
-    printf("access token: %s\n", access_token);
 
     /* create a new Mosquitto runtime instance with a random client ID */
     mosq = mosquitto_new(DEVICE_ID, true, &mdata);
@@ -196,20 +229,21 @@ int main()
     if( debug ) mosquitto_log_callback_set(mosq, mosq_log_cb);
     mosquitto_publish_callback_set(mosq, mosq_publish_cb);
     mosquitto_connect_callback_set(mosq, mosq_connect_cb);
+    mosquitto_disconnect_callback_set(mosq, mosq_disconnect_cb);
 
     /* use the access token as the password */
     mosquitto_username_pw_set(mosq, "unused", access_token);
 
+    /* start a new thread to process network traffic */
+    mosquitto_loop_start(mosq);
+
     /* connect to the MQTT server */
-    result = mosquitto_connect(mosq, MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE);
+    result = mosquitto_connect_async(mosq, MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE);
     if (result != 0) {
         printf("Can't connect to MQTT server\n");
         mosquitto_destroy(mosq);
         return -1;
     }
-
-    /* start a new thread to process network traffic */
-    mosquitto_loop_start(mosq);
 
     /* wait for connection acknowledgement */
     wait_for_connack(&mdata);
@@ -223,10 +257,11 @@ int main()
     }
 
     /* start publishing messages to the topic */
-    printf("Publishing messages...\n");
-    for(int i=0; i<1000; i++){
-        sprintf(message, "%d", i);
-        result = mosquitto_publish(mosq, NULL, MQTT_TOPIC, MESSAGE_LENGTH, message, MQTT_QOS, true);
+    printf("Start publishing\n");
+    for(int i=0; i<=1000; i++){
+        sprintf(message, "%c", 'a'+(i%26));
+        int mid = 0;
+        result = mosquitto_publish(mosq, &mid, MQTT_TOPIC, MESSAGE_LENGTH, message, MQTT_QOS, true);
         if (result != 0) {
             printf("Can't publish to MQTT server\n");
             mosquitto_disconnect(mosq);
@@ -234,7 +269,7 @@ int main()
             mosquitto_destroy(mosq);
             return -1;
         }
-        printf("Published \"%d\"\n", i);
+        printf("Publishing (mid: %d) \"%s\"... ", mid, message);
         sleep(1);
     }
     printf("Done\n");
@@ -247,7 +282,6 @@ int main()
     mosquitto_loop_stop(mosq, false);
     mosquitto_destroy(mosq);
     mosquitto_lib_cleanup();
-    free(tokens);
     free(access_token);
 
     printf("\n*** Completed device_mqtt_pub\n\n");
