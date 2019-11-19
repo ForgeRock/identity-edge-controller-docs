@@ -28,11 +28,11 @@ import org.forgerock.iot.config.Configuration;
 import java.util.Optional;
 
 /**
- * Runnable OAuth 2 Authenticator
+ * Runnable OAuth 2 Connect Authorizer
  */
-public class OAuth2Authenticator extends OAuth2Validator<SimpleAuthOutput> {
+public class OAuth2ConnectAuthorizer extends OAuth2Authorizer<SimpleAuthOutput> {
 
-    public OAuth2Authenticator(@NotNull Configuration configuration, @NotNull Async<SimpleAuthOutput> async, @NotNull String token){
+    public OAuth2ConnectAuthorizer(@NotNull Configuration configuration, @NotNull Async<SimpleAuthOutput> async, @NotNull String token){
         super(configuration, async, token);
     }
 
@@ -42,11 +42,11 @@ public class OAuth2Authenticator extends OAuth2Validator<SimpleAuthOutput> {
         final SimpleAuthOutput output = super.async.getOutput();
         boolean allow = false;
         if(response.isPresent() && isTokenActive(response.get())) {
-            log.info("authentication: token is active");
+            log.info("connect: token is active");
 
             Optional<String> mqttScope = getMQTTScope(response.get());
             if(mqttScope.isPresent()) {
-                log.info("authentication: MQTT scope is %s", mqttScope.get());
+                log.info("connect: MQTT scope is %s", mqttScope.get());
                 //Get the default permissions from the output
                 final ModifiableDefaultPermissions defaultPermissions = output.getDefaultPermissions();
 
@@ -64,15 +64,16 @@ public class OAuth2Authenticator extends OAuth2Validator<SimpleAuthOutput> {
 
                 allow = true;
             } else {
-                log.info("authentication: no mqtt scope");
+                log.info("connect: no mqtt scope");
             }
 
         }
         if( allow ){
-            log.info("authentication: successful");
+            log.info("connect: successful");
+            // client is authorized so "authenticate" it
             output.authenticateSuccessfully();
         } else {
-            output.failAuthentication(ConnackReasonCode.NOT_AUTHORIZED, "OAuth2 verification failed");
+            output.failAuthentication(ConnackReasonCode.NOT_AUTHORIZED, "OAuth2 authorization failed");
         }
     }
 

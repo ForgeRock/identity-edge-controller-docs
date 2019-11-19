@@ -1,0 +1,53 @@
+# Created with http://plantuml.com/sequence-diagram
+# View the output of this file by adding the PlantUML plugin to GoLand
+
+@startuml
+Title Device MQTT Publisher Example
+
+legend
+|= |= Key |
+|<back:Black>    </back>| ForgeRock SDK call |
+|<back:Technology>    </back>| MQTT client call |
+endlegend
+
+skinparam activity {
+  StartColor Darkorange
+  ArrowColor Darkorange
+  BackgroundColor<< FR >> Black
+  FontColor<< FR >> White
+  BackgroundColor<< MQTT >> Technology
+  BackgroundColor Darkorange
+  BorderColor black
+}
+
+
+(*) --> "Initialise IEC SDK" <<FR>>
+if "Initialised successfully?" then
+    -right->[false] "Exit with error"
+else
+endif
+-->[true]"Register device with ForgeRock" <<FR>>
+if "Registered successfully?" then
+    -right->[false] "Exit with error"
+else
+endif
+
+-down->[true] "Get an OAuth 2.0 access token" as gettokens <<FR>>
+--> "Use OAuth 2.0 token as MQTT client password" <<MQTT>>
+--> "(Re)connect to MQTT broker" <<MQTT>>
+
+if "Connection successfully?" then
+    -->[false] gettokens
+else
+endif
+
+-down->[true] "Publish message to topic" as publish <<MQTT>>
+if "Publish successfully?" then
+    -->[false] gettokens
+else
+    -->[true] publish
+endif
+
+
+@enduml
+

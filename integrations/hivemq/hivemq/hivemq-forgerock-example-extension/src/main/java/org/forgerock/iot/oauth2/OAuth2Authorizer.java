@@ -45,10 +45,10 @@ import java.util.regex.Pattern;
 
 
 /**
- * Runnable abstract class for verifying an OAuth 2 token
- * @param <T> The output type for the authenticator\authorizer
+ * Runnable abstract class for authorization with an OAuth 2 token
+ * @param <T> The output type for the authorizer
  */
-public abstract class OAuth2Validator<T> implements Runnable {
+public abstract class OAuth2Authorizer<T> implements Runnable {
 
     final Configuration configuration;
     final private String token;
@@ -56,7 +56,7 @@ public abstract class OAuth2Validator<T> implements Runnable {
     protected static final Logger log = LoggerFactory.getLogger(TokenAuthenticator.class);
     static protected final Pattern pattern = Pattern.compile("(?<=mqtt:)[/\\w]+");
 
-    OAuth2Validator(@NotNull Configuration configuration, @NotNull Async<T> async, @NotNull String token){
+    OAuth2Authorizer(@NotNull Configuration configuration, @NotNull Async<T> async, @NotNull String token){
         this.configuration = configuration;
         this.token = token;
         this.async = async;

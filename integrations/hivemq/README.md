@@ -1,6 +1,60 @@
 ## HiveMQ Integration
 
-IN DEVELOPMENT
+### Introduction
+
+[HiveMQ](https://www.hivemq.com/) is a MQTT broker that offers a free, open-source extension SDK. The HiveMQ extension
+framework provides an open API that allows developers to create custom extensions.
+
+In this integration, we create an example HiveMQ extension that implements authenticates and authorises MQTT client via
+OAuth2 access tokens issued by AM.
+
+![IEC HiveMQ Integration](../../docs/images/IEC-HiveMQ-Integration.svg "IEC HiveMQ Integration")
+
+Components in the integration are:
+- Device application
+    - registers a device using the IEC SDK
+    - obtains an OAuth 2.0 access token via the IEC SDK
+    - connects to HiveMQ using an OAuth2 access token as a password
+    - repeatedly publishes to a single topics via HiveMQ
+- IEC Service
+    - facilitates registration and get token requests for the client application
+- AM
+    - registers edge nodes
+    - introspects OAuth 2.0 access tokens for the Token Validation Microservice
+- Token Validation Microservice
+    - handles authentication to AM
+    - caches token introspections
+- ForgeRock Example Extension
+    - performs authentication and authorisation for HiveMQ using OAuth 2.0 access tokens
+- HiveMQ
+    - MQTT broker
+
+### Device Application
+
+The device MQTT publisher example is used in this integration to simulate a device publishing data to a MQTT topic.
+This example has no HiveMQ specific code and can be used with any MQTT broker that can validate OAuth 2.0 access tokens
+issued by AM.
+The example can be described by the following workflow diagram:
+
+![Device App](../../docs/images/Device-MQTT-Publisher-Example.png "Device MQTT Publisher Example")
+
+### HiveMQ ForgeRock Example Extension
+
+The ForgeRock Example Extension uses the OAuth 2.0 access token supplied as the MQTT client password to authenticate and
+authorise the client. On connection, if the password supplied by the client is a valid access token which has the MQTT
+specific scope `matt:some/device/topic` then the device is "authenticated" and allowed to connect. Furthermore, the
+topic part of the MQTT scope `some/device/topic` is used to set the permissions applied by HiveMQ to authorise
+subsequent publish and subscribe requests (in this case `device/data` is used). The following sequence diagram describes
+the MQTT connection workflow:
+
+![MQTT Connection](../../docs/images/HiveMQ-Integration-Con-Sequence-Diagram.png "MQTT Connection Sequence Diagram")
+
+On a publish request, the extension checks whether the token is still valid and if so uses the permissions set at
+connection time to check whether the device is allowed to publish to the topic. If the client is unauthorised for any
+reason then it is disconnected, thus allowing it to retrieve a fresh token. The following sequence diagram describes
+the MQTT publish workflow:
+
+![MQTT Publish](../../docs/images/HiveMQ-Integration-Pub-Sequence-Diagram.png "MQTT Publish Sequence Diagram")
 
 ### Prerequisites
 
@@ -70,7 +124,7 @@ Run the `mstokval` container:
 
 Build the ForgeRock Example Extension for HiveMQ:
 
-    cd hivemq/hivemq-forgerock-example-plugin
+    cd hivemq/hivemq-forgerock-example-extension
     mvn clean
     mvn package
     cd -

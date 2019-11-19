@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.forgerock.iot</groupId>
-    <artifactId>hivemq-forgerock-example-plugin</artifactId>
+    <artifactId>hivemq-forgerock-example-extension</artifactId>
     <version>0.1</version>
 
     <description>HiveMQ 4 ForgeRock Extension</description>
@@ -42,11 +42,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hivemq</groupId>
-            <artifactId>hivemq-spi</artifactId>
-            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
@@ -84,9 +79,6 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <!--<exclude>com.hivemq:hivemq-extension-sdk</exclude>-->
-                                    <!--<exclude>com.hivemq:hivemq-spi</exclude>-->
-                                    <!--<exclude>com.google.inject:*</exclude>-->
                                     <exclude>com.google.guava:*</exclude>
                                     <exclude>org.slf4j:*</exclude>
                                     <exclude>ch.qos.logback:*</exclude>

@@ -18,24 +18,24 @@ package org.forgerock.iot.oauth2;
 
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.async.Async;
-import com.hivemq.extension.sdk.api.auth.parameter.PublishAuthorizerOutput;
+import com.hivemq.extension.sdk.api.auth.parameter.SubscriptionAuthorizerOutput;
 import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
 import org.forgerock.iot.config.Configuration;
 
 import java.util.Optional;
 
 /**
- * Runnable OAuth 2 Publish Authorizer
+ * Runnable OAuth 2 Subscribe Authorizer
  */
-public class OAuth2PublishAuthorizer extends OAuth2Validator<PublishAuthorizerOutput> {
+public class OAuth2SubscriptionAuthorizer extends OAuth2Authorizer<SubscriptionAuthorizerOutput> {
 
-    public OAuth2PublishAuthorizer(@NotNull Configuration configuration, @NotNull Async<PublishAuthorizerOutput> async, @NotNull String token){
+    public OAuth2SubscriptionAuthorizer(@NotNull Configuration configuration, @NotNull Async<SubscriptionAuthorizerOutput> async, @NotNull String token){
         super(configuration, async, token);
     }
 
     @Override
     void processResponse(Optional<String> response) {
-        final PublishAuthorizerOutput output = super.async.getOutput();
+        final SubscriptionAuthorizerOutput output = super.async.getOutput();
         if(response.isPresent() && isTokenActive(response.get())) {
             output.nextExtensionOrDefault();
         } else {

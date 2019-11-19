@@ -1,0 +1,77 @@
+# Created with http://plantuml.com/sequence-diagram
+# View the output of this file by adding the PlantUML plugin to GoLand
+
+@startuml
+
+participant Device as device
+participant "IEC Client" as sdk
+participant IEC as iec
+participant HiveMQ as hivemq
+participant "HiveMQ ForgeRock\nExample Extension" as extension
+participant "Token Validation\nMicroservice" as mstokval
+participant AM as am
+
+== MQTT Connection ==
+
+device -> sdk: Request OAuth 2.0 tokens
+sdk -> iec : Request OAuth 2.0 tokens\non behalf of device
+iec -> am : Request OAuth 2.0 tokens\non behalf of device
+am -> iec : OAuth 2.0 tokens
+iec -> sdk : OAuth 2.0 tokens
+sdk -> device : OAuth 2.0 tokens
+device -> device : Extract OAuth 2.0 access token
+device -> device : Set access token\nas MQTT client password
+device -> hivemq : Connect to HiveMQ server
+hivemq -> extension : Delegate to extension
+extension -> extension : Assume password is\nan access token
+extension -> extension : Store access token in\nclient attribute store
+extension -> mstokval : Request introspection\nof access token
+alt Token is stateful\nor not in token cache
+mstokval -> am : Request introspection\nof access token
+am -> mstokval : Token Introspection
+end
+mstokval -> extension : Token Introspection
+extension -> extension : Check if access token\nis active and has\nMQTT specific scope
+alt Token is valid
+extension -> extension : Use MQTT specific\nscope to set the\ntopic permissions\nfor the client
+extension -> hivemq : Authentication success
+hivemq -> device : Finish connection handshake
+else Token is invalid
+extension -> hivemq : Authentication failure
+hivemq -> device : Disconnect MQTT client
+end
+
+newpage
+
+== MQTT Publish ==
+
+device -> hivemq : Publish message to HiveMQ server
+hivemq -> extension : Delegate to extension
+extension -> extension : Retrieve access token\nfrom attribute store
+extension -> mstokval : Request introspection\nof access token
+alt Token is stateful\nor not in token cache
+mstokval -> am : Request introspection\nof token
+am -> mstokval : Token Introspection
+end
+mstokval -> extension : Token Introspection
+extension -> extension : Check if token is active
+
+alt Token is active
+extension -> hivemq : Defer to default permissions
+hivemq -> hivemq : Check client permissions\n(set during connection)
+alt Device has permission to publish to the topic
+hivemq -> hivemq : Authorisation success
+else
+hivemq -> hivemq : Authorisation failure
+end
+
+else  Token is inactive
+extension -> hivemq : Authorisation failure
+end
+
+alt Client is authorised
+hivemq -> hivemq : Allow message publish
+else Client is unauthorised
+hivemq -> device : Disconnect MQTT client
+end
+@enduml
