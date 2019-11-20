@@ -42,7 +42,7 @@ The example can be described by the following workflow diagram:
 
 The ForgeRock Example Extension uses the OAuth 2.0 access token supplied as the MQTT client password to authenticate and
 authorise the client. On connection, if the password supplied by the client is a valid access token which has the MQTT
-specific scope `matt:some/device/topic` then the device is "authenticated" and allowed to connect. Furthermore, the
+specific scope `mqtt:some/device/topic` then the device is "authenticated" and allowed to connect. Furthermore, the
 topic part of the MQTT scope `some/device/topic` is used to set the permissions applied by HiveMQ to authorise
 subsequent publish and subscribe requests (in this case `device/data` is used). The following sequence diagram describes
 the MQTT connection workflow:
