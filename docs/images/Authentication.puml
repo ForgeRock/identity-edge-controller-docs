@@ -1,0 +1,16 @@
+@startuml
+Title Authenticate an MQTT Client with an OAuth 2.0 Access Token
+
+participant "MQTT Client" as client
+participant "MQTT Broker (HiveMQ)" as broker
+participant "Authorization Server (ForgeRock)" as auth
+
+client -> auth: Request access token (client credential flow)
+auth -> client: Access token
+client -> broker: Connect with access token
+broker -> auth: Request token verification keys
+auth -> broker: Token verification keys
+broker -> broker: Validate access token
+broker -> client: Connection success
+
+@enduml
