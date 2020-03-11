@@ -4,10 +4,16 @@ The ForgeRock Identity Platform can issue OAuth 2.0 access tokens for authentica
 Enterprise Security Extension (ESE) supports JSON Web Tokens (JWT) and allows integration with OAuth 2.0 authorization
 servers for client authentication and authorization.
 
-In this example we will show how to use ForgeRock and HiveMQ to authenticate a client as shown in the
-diagram below.
+In this example we will show how to use ForgeRock and HiveMQ to authenticate a client as shown in the diagram below.
 
 ![MQTT Client Authentication](images/authentication.svg "MQTT Client Authentication")
+
+These instructions are not intended to be production ready, and should be used for evaluation purposes only. Check the
+ForgeRock and HiveMQ documentation for information on deploying into production. The default settings and OAuth 2.0
+configuration are provided to make it easier to evaluate the software. The
+[AM Installation Guide](https://backstage.forgerock.com/docs/am/6.5/install-guide/#chap-install-securing) and
+[OAuth 2.0 Guide](https://backstage.forgerock.com/docs/am/6.5/oauth2-guide/)
+provides best practices for securing your AM installation and choosing the right OAuth 2.0 configuration for your deployment.
 
 ## Environment prerequisites
 
@@ -22,21 +28,15 @@ You will configure ForgeRock Access Management (AM) as an OAuth 2.0 authorizatio
 issues access tokens, and validates issued tokens. For more information on using AM with OAuth 2.0, see the
 [OAuth 2.0 Guide](https://backstage.forgerock.com/docs/am/6.5/oauth2-guide/).
 
-This example uses AM's public Docker image. To allow the browser access to the AM instance running on
-the container you must first map AM's FQDN to your localhost:
-```bash
-echo 127.0.0.1 openam.example.com >> /etc/hosts
-```
-
-Now you can start the AM instance:
+This example uses AM's public Docker image. Start the AM instance by running:
 ```bash
 docker run -p 8080:8080 gcr.io/forgerock-io/openam:6.5.2.1
 ```
 
-Once the container has started, navigate to http://openam.example.com:8080 in your browser. This will take you to the AM
+Once the container has started, navigate to http://am.localtest.me:8080 in your browser. This will take you to the AM
 installation page. Select *Create Default Configuration* and accept the license agreement. Enter the administrator
-password (we use `password` in this example) and select *Create Configuration*. Once the configuration is complete,
-select *Proceed to Login*. Log in using the administrator credentials (User Name: `amadmin`, Password: `password`).
+password (we use `changeit` in this example) and select *Create Configuration*. Once the configuration is complete,
+select *Proceed to Login*. Log in using the administrator credentials (User Name: `amadmin`, Password: `changeit`).
 
 ### Configure the OAuth 2.0 Provider
 
@@ -55,7 +55,7 @@ one of the shared verification keys.
 
 Navigate to *Applications > OAuth 2.0* and add a client with the following values:
 - Client ID: `mqtt-client`
-- Client Secret: `password`
+- Client Secret: `changeit`
 - Default Scope(s): `mqtt`
 
 <img src="images/add-client.png" width="800"/>
@@ -71,8 +71,8 @@ We will use the client credential grant flow to retrieve an OAuth 2.0 access tok
 curl --request POST \
     --data "grant_type=client_credentials" \
     --data "client_id=mqtt-client" \
-    --data "client_secret=password" \
-    http://openam.example.com:8080/oauth2/access_token
+    --data "client_secret=changeit" \
+    http://am.localtest.me:8080/oauth2/access_token
 ```
 
 The response contains the access token you can use to authenticate the client in later steps:
@@ -88,8 +88,8 @@ The response contains the access token you can use to authenticate the client in
 Verify that the access token is valid and contains the expected claims:
 ```bash
 curl --request POST \
-    --user mqtt-client:password \
-    http://openam.example.com:8080/oauth2/introspect?token=eyJ0eX...v5vS_w
+    --user mqtt-client:changeit \
+    http://am.localtest.me:8080/oauth2/introspect?token=eyJ0eX...v5vS_w
 ```
 
 The response should contain the `scope` claim with a value of `mqtt`:
@@ -102,7 +102,7 @@ The response should contain the `scope` claim with a value of `mqtt`:
     "token_type":"Bearer",
     "exp":1580746380,
     "sub":"mqtt-client",
-    "iss":"http://openam.example.com:8080/oauth2",
+    "iss":"http://am.localtest.me:8080/oauth2",
     "auditTrackingId":"c7e64fdf-c513-45d4-a52d-66b8fd243cfa-72229",
     "cts":"OAUTH2_STATELESS_GRANT",
     "expires_in":3600
@@ -128,11 +128,11 @@ Replace the configuration in *enterprise-security-extension.xml* with the follow
             <name>ForgeRock</name>
             <enabled>true</enabled>
             <configuration>
-                <jwks-endpoint>http://openam.example.com:8080/oauth2/connect/jwk_uri</jwks-endpoint>
-                <introspection-endpoint>http://openam.example.com:8080/oauth2/introspect</introspection-endpoint>
+                <jwks-endpoint>http://am.localtest.me:8080/oauth2/connect/jwk_uri</jwks-endpoint>
+                <introspection-endpoint>http://am.localtest.me:8080/oauth2/introspect</introspection-endpoint>
                 <simple-auth>
                     <username>mqtt-client</username>
-                    <password>password</password>
+                    <password>changeit</password>
                 </simple-auth>
             </configuration>
         </jwt-realm>
